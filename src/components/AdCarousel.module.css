@@ -1,0 +1,154 @@
+.carouselContainer {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 85vh;
+}
+
+.slidesWrapper {
+  position: relative;
+  width: 100%;
+  height: 85vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, filter 0.6s ease;
+  will-change: transform, opacity, filter;
+}
+
+.active {
+  z-index: 2;
+  opacity: 1;
+  filter: blur(0px);
+  transform: scale(1) translateX(0);
+}
+
+.inactive {
+  z-index: 1;
+  opacity: 0.4;
+  filter: blur(8px);
+  cursor: pointer;
+}
+/* If inactive slide is translated via style, we add scale here to make them look further back */
+.inactive .adWrapper {
+  transform: scale(0.85);
+  transition: transform 0.6s ease;
+}
+
+.adWrapper {
+  position: relative;
+  width: fit-content;
+  max-width: 90vw;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: transform 0.6s ease;
+}
+
+.adScreen {
+  position: relative;
+  width: fit-content;
+  background: #000;
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.adMedia {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 85vh;
+  object-fit: contain;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.adOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 3rem;
+  z-index: 2;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 50%);
+  pointer-events: none; /* Let clicks pass through overlay */
+}
+
+.adTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1rem;
+  text-align: left;
+  letter-spacing: -0.02em;
+}
+
+.primaryBtn {
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+  pointer-events: auto; /* Re-enable clicks on button */
+}
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+  background: var(--accent-hover);
+}
+
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.navBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.leftBtn {
+  left: 2rem;
+}
+
+.rightBtn {
+  right: 2rem;
+}
