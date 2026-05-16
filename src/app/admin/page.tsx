@@ -200,6 +200,7 @@ export default function AdminPortal() {
                   className={styles.input} 
                   onChange={(e) => setAdFile(e.target.files ? e.target.files[0] : null)}
                   accept="image/*,video/*"
+                  required
                 />
               </div>
               <button type="submit" className={styles.submitBtn} disabled={isUploading}>
