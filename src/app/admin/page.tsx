@@ -12,6 +12,7 @@ export default function AdminPortal() {
   const [adForm, setAdForm] = useState({ title: '', imageUrl: '' });
   const [adFile, setAdFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [clientForm, setClientForm] = useState({ name: '', logoUrl: '', instagramUrl: '', websiteUrl: '' });
   const [clientFile, setClientFile] = useState<File | null>(null);
 
@@ -48,13 +49,15 @@ export default function AdminPortal() {
 
     if (adFile) {
       try {
+        setUploadProgress(0);
         const blob = await upload(adFile.name, adFile, {
           access: 'public',
           handleUploadUrl: '/api/upload',
+          onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded / p.total) * 100))
         });
         finalImageUrl = blob.url;
-      } catch (err) {
-        alert("Image upload failed! Is Vercel Blob connected or file too large?");
+      } catch (err: any) {
+        alert("Image upload failed! " + err.message);
         setIsUploading(false);
         return;
       }
@@ -79,13 +82,15 @@ export default function AdminPortal() {
 
     if (clientFile) {
       try {
+        setUploadProgress(0);
         const blob = await upload(clientFile.name, clientFile, {
           access: 'public',
           handleUploadUrl: '/api/upload',
+          onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded / p.total) * 100))
         });
         finalLogoUrl = blob.url;
-      } catch (err) {
-        alert("Logo upload failed! Is Vercel Blob connected or file too large?");
+      } catch (err: any) {
+        alert("Logo upload failed! " + err.message);
         setIsUploading(false);
         return;
       }
@@ -124,13 +129,15 @@ export default function AdminPortal() {
     if (portfolioFile) {
       if (portfolioFile.type.startsWith('video/')) isVideo = true;
       try {
+        setUploadProgress(0);
         const blob = await upload(portfolioFile.name, portfolioFile, {
           access: 'public',
           handleUploadUrl: '/api/upload',
+          onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded / p.total) * 100))
         });
         mediaUrl = blob.url;
-      } catch (err) {
-        alert("Media upload failed! Is Vercel Blob connected or file too large?");
+      } catch (err: any) {
+        alert("Media upload failed! " + err.message);
         setIsUploading(false);
         return;
       }
@@ -196,7 +203,7 @@ export default function AdminPortal() {
                 />
               </div>
               <button type="submit" className={styles.submitBtn} disabled={isUploading}>
-                {isUploading ? 'Uploading...' : 'Update Featured Ad'}
+                {isUploading ? `Uploading... ${uploadProgress}%` : 'Update Featured Ad'}
               </button>
             </form>
 
@@ -258,7 +265,7 @@ export default function AdminPortal() {
                 />
               </div>
               <button type="submit" className={styles.submitBtn} disabled={isUploading}>
-                {isUploading ? 'Uploading...' : 'Add Client'}
+                {isUploading ? `Uploading... ${uploadProgress}%` : 'Add Client'}
               </button>
             </form>
 
@@ -312,7 +319,7 @@ export default function AdminPortal() {
                 />
               </div>
               <button type="submit" className={styles.submitBtn} disabled={isUploading}>
-                {isUploading ? 'Uploading...' : 'Add to Portfolio'}
+                {isUploading ? `Uploading... ${uploadProgress}%` : 'Add to Portfolio'}
               </button>
             </form>
 
