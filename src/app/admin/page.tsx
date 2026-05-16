@@ -11,14 +11,19 @@ export default function AdminPortal() {
   
   const [adForm, setAdForm] = useState({ title: '', imageUrl: '' });
   const [adFile, setAdFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploadingAd, setIsUploadingAd] = useState(false);
+  const [adUploadProgress, setAdUploadProgress] = useState(0);
+  
   const [clientForm, setClientForm] = useState({ name: '', logoUrl: '', instagramUrl: '', websiteUrl: '' });
   const [clientFile, setClientFile] = useState<File | null>(null);
+  const [isUploadingClient, setIsUploadingClient] = useState(false);
+  const [clientUploadProgress, setClientUploadProgress] = useState(0);
 
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [portfolioForm, setPortfolioForm] = useState({ title: '', clientName: '', category: '', isVideo: false });
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null);
+  const [isUploadingPortfolio, setIsUploadingPortfolio] = useState(false);
+  const [portfolioUploadProgress, setPortfolioUploadProgress] = useState(0);
 
   useEffect(() => {
     fetchAds();
@@ -43,67 +48,75 @@ export default function AdminPortal() {
 
   const handleAdSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsUploading(true);
+    setIsUploadingAd(true);
 
     let finalImageUrl = adForm.imageUrl;
 
     if (adFile) {
       try {
-        setUploadProgress(0);
+        setAdUploadProgress(0);
         const blob = await upload(adFile.name, adFile, {
           access: 'public',
           handleUploadUrl: '/api/upload',
-          onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded / p.total) * 100))
+          onUploadProgress: (p) => setAdUploadProgress(Math.round((p.loaded / p.total) * 100))
         });
         finalImageUrl = blob.url;
       } catch (err: any) {
         alert("Image upload failed! " + err.message);
-        setIsUploading(false);
+        setIsUploadingAd(false);
         return;
       }
     }
 
-    await fetch('/api/ads', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...adForm, imageUrl: finalImageUrl })
-    });
+    try {
+      await fetch('/api/ads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...adForm, imageUrl: finalImageUrl })
+      });
+    } catch (e) {
+      console.error(e);
+    }
     setAdForm({ title: '', imageUrl: '' });
     setAdFile(null);
-    setIsUploading(false);
+    setIsUploadingAd(false);
     fetchAds();
   };
 
   const handleClientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsUploading(true);
+    setIsUploadingClient(true);
 
     let finalLogoUrl = clientForm.logoUrl;
 
     if (clientFile) {
       try {
-        setUploadProgress(0);
+        setClientUploadProgress(0);
         const blob = await upload(clientFile.name, clientFile, {
           access: 'public',
           handleUploadUrl: '/api/upload',
-          onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded / p.total) * 100))
+          onUploadProgress: (p) => setClientUploadProgress(Math.round((p.loaded / p.total) * 100))
         });
         finalLogoUrl = blob.url;
       } catch (err: any) {
         alert("Logo upload failed! " + err.message);
-        setIsUploading(false);
+        setIsUploadingClient(false);
         return;
       }
     }
 
-    await fetch('/api/clients', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...clientForm, logoUrl: finalLogoUrl })
-    });
+    try {
+      await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...clientForm, logoUrl: finalLogoUrl })
+      });
+    } catch(e) {
+      console.error(e);
+    }
     setClientForm({ name: '', logoUrl: '', instagramUrl: '', websiteUrl: '' });
     setClientFile(null);
-    setIsUploading(false);
+    setIsUploadingClient(false);
     fetchClients();
   };
 
@@ -121,7 +134,7 @@ export default function AdminPortal() {
 
   const handlePortfolioSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsUploading(true);
+    setIsUploadingPortfolio(true);
 
     let mediaUrl = '';
     let isVideo = portfolioForm.isVideo;
@@ -129,16 +142,16 @@ export default function AdminPortal() {
     if (portfolioFile) {
       if (portfolioFile.type.startsWith('video/')) isVideo = true;
       try {
-        setUploadProgress(0);
+        setPortfolioUploadProgress(0);
         const blob = await upload(portfolioFile.name, portfolioFile, {
           access: 'public',
           handleUploadUrl: '/api/upload',
-          onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded / p.total) * 100))
+          onUploadProgress: (p) => setPortfolioUploadProgress(Math.round((p.loaded / p.total) * 100))
         });
         mediaUrl = blob.url;
       } catch (err: any) {
         alert("Media upload failed! " + err.message);
-        setIsUploading(false);
+        setIsUploadingPortfolio(false);
         return;
       }
     }
@@ -149,15 +162,19 @@ export default function AdminPortal() {
       videoUrl: isVideo ? mediaUrl : null,
     };
 
-    await fetch('/api/portfolio', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    try {
+      await fetch('/api/portfolio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch(e) {
+      console.error(e);
+    }
     
     setPortfolioForm({ title: '', clientName: '', category: '', isVideo: false });
     setPortfolioFile(null);
-    setIsUploading(false);
+    setIsUploadingPortfolio(false);
     fetchPortfolio();
   };
 
@@ -202,8 +219,8 @@ export default function AdminPortal() {
                   required
                 />
               </div>
-              <button type="submit" className={styles.submitBtn} disabled={isUploading}>
-                {isUploading ? `Uploading... ${uploadProgress}%` : 'Update Featured Ad'}
+              <button type="submit" className={styles.submitBtn} disabled={isUploadingAd}>
+                {isUploadingAd ? `Uploading... ${adUploadProgress}%` : 'Update Featured Ad'}
               </button>
             </form>
 
@@ -264,8 +281,8 @@ export default function AdminPortal() {
                   placeholder="https://..."
                 />
               </div>
-              <button type="submit" className={styles.submitBtn} disabled={isUploading}>
-                {isUploading ? `Uploading... ${uploadProgress}%` : 'Add Client'}
+              <button type="submit" className={styles.submitBtn} disabled={isUploadingClient}>
+                {isUploadingClient ? `Uploading... ${clientUploadProgress}%` : 'Add Client'}
               </button>
             </form>
 
@@ -318,8 +335,8 @@ export default function AdminPortal() {
                   required
                 />
               </div>
-              <button type="submit" className={styles.submitBtn} disabled={isUploading}>
-                {isUploading ? `Uploading... ${uploadProgress}%` : 'Add to Portfolio'}
+              <button type="submit" className={styles.submitBtn} disabled={isUploadingPortfolio}>
+                {isUploadingPortfolio ? `Uploading... ${portfolioUploadProgress}%` : 'Add to Portfolio'}
               </button>
             </form>
 
