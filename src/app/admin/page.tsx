@@ -55,6 +55,10 @@ export default function AdminPortal() {
       if (uploadRes.ok) {
         const { url } = await uploadRes.json();
         finalImageUrl = url;
+      } else {
+        alert("Image upload failed! Is Vercel Blob connected?");
+        setIsUploading(false);
+        return;
       }
     }
 
@@ -85,6 +89,10 @@ export default function AdminPortal() {
       if (uploadRes.ok) {
         const { url } = await uploadRes.json();
         finalLogoUrl = url;
+      } else {
+        alert("Logo upload failed! Is Vercel Blob connected?");
+        setIsUploading(false);
+        return;
       }
     }
 
@@ -129,6 +137,10 @@ export default function AdminPortal() {
       if (uploadRes.ok) {
         const { url } = await uploadRes.json();
         mediaUrl = url;
+      } else {
+        alert("Media upload failed! Is Vercel Blob connected?");
+        setIsUploading(false);
+        return;
       }
     }
 

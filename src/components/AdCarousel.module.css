@@ -62,7 +62,9 @@
 .adScreen {
   position: relative;
   width: fit-content;
-  background: #000;
+  min-width: 300px;
+  min-height: 400px;
+  background: #111;
   border-radius: 24px;
   overflow: hidden;
   display: flex;
