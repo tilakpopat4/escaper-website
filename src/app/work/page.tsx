@@ -5,9 +5,14 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export default async function WorkPage() {
-  const portfolioItems = await prisma.portfolio.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+  let portfolioItems: any[] = [];
+  try {
+    portfolioItems = await prisma.portfolio.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (error) {
+    console.error("Failed to fetch portfolio items from database:", error);
+  }
 
   return (
     <main className={styles.main}>

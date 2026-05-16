@@ -6,14 +6,25 @@ import AdCarousel from '@/components/AdCarousel';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const latestAds = await prisma.ad.findMany({
-    where: { isActive: true },
-    orderBy: { createdAt: 'desc' }
-  });
+  let latestAds: any[] = [];
+  let clients: any[] = [];
 
-  const clients = await prisma.client.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+  try {
+    latestAds = await prisma.ad.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (error) {
+    console.error("Failed to fetch ads from database:", error);
+  }
+
+  try {
+    clients = await prisma.client.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (error) {
+    console.error("Failed to fetch clients from database:", error);
+  }
 
   const adsToRender = latestAds.length > 0 ? latestAds : [
     {
