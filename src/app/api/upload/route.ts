@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(request: Request) {
   try {
@@ -11,27 +10,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'No file found' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     // Create a unique filename
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const filename = file.name.replace(/[^a-zA-Z0-9.]/g, '_'); // basic sanitize
     const finalName = `${uniqueSuffix}-${filename}`;
     
-    // Save to public/uploads
-    const fs = require('fs');
-    const dir = join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+    // Upload to Vercel Blob
+    const blob = await put(finalName, file, {
+      access: 'public',
+    });
 
-    const path = join(dir, finalName);
-    await writeFile(path, buffer);
-
-    return NextResponse.json({ success: true, url: `/uploads/${finalName}` });
+    return NextResponse.json({ success: true, url: blob.url });
   } catch (error) {
-    console.error(error);
+    console.error('Blob upload error:', error);
     return NextResponse.json({ success: false, error: 'Failed to upload' }, { status: 500 });
   }
 }
