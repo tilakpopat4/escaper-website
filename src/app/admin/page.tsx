@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import Link from 'next/link';
+import { upload } from '@vercel/blob/client';
 
 export default function AdminPortal() {
   const [ads, setAds] = useState<any[]>([]);
@@ -46,17 +47,14 @@ export default function AdminPortal() {
     let finalImageUrl = adForm.imageUrl;
 
     if (adFile) {
-      const formData = new FormData();
-      formData.append('file', adFile);
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-      if (uploadRes.ok) {
-        const { url } = await uploadRes.json();
-        finalImageUrl = url;
-      } else {
-        alert("Image upload failed! Is Vercel Blob connected?");
+      try {
+        const blob = await upload(adFile.name, adFile, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        finalImageUrl = blob.url;
+      } catch (err) {
+        alert("Image upload failed! Is Vercel Blob connected or file too large?");
         setIsUploading(false);
         return;
       }
@@ -80,17 +78,14 @@ export default function AdminPortal() {
     let finalLogoUrl = clientForm.logoUrl;
 
     if (clientFile) {
-      const formData = new FormData();
-      formData.append('file', clientFile);
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-      if (uploadRes.ok) {
-        const { url } = await uploadRes.json();
-        finalLogoUrl = url;
-      } else {
-        alert("Logo upload failed! Is Vercel Blob connected?");
+      try {
+        const blob = await upload(clientFile.name, clientFile, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        finalLogoUrl = blob.url;
+      } catch (err) {
+        alert("Logo upload failed! Is Vercel Blob connected or file too large?");
         setIsUploading(false);
         return;
       }
@@ -128,17 +123,14 @@ export default function AdminPortal() {
 
     if (portfolioFile) {
       if (portfolioFile.type.startsWith('video/')) isVideo = true;
-      const formData = new FormData();
-      formData.append('file', portfolioFile);
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-      if (uploadRes.ok) {
-        const { url } = await uploadRes.json();
-        mediaUrl = url;
-      } else {
-        alert("Media upload failed! Is Vercel Blob connected?");
+      try {
+        const blob = await upload(portfolioFile.name, portfolioFile, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        mediaUrl = blob.url;
+      } catch (err) {
+        alert("Media upload failed! Is Vercel Blob connected or file too large?");
         setIsUploading(false);
         return;
       }
