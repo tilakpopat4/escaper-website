@@ -3,6 +3,10 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      throw new Error("Vercel Blob Token is completely missing! You must create a Blob database in your Vercel Storage tab AND Redeploy your site so the environment variable is loaded.");
+    }
+    
     const body = (await request.json()) as HandleUploadBody;
     
     const jsonResponse = await handleUpload({
