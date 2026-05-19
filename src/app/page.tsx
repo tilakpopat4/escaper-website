@@ -3,11 +3,35 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import AdCarousel from '@/components/AdCarousel';
 
+const DEFAULT_SETTINGS = {
+  hero_title: "We Make Your Hospitality Brand",
+  hero_highlight: "Unignorable.",
+  hero_subtitle: "Escaper Creatives is the premier social media agency for cafes, restaurants, hotels, and resorts. Let us tell your story.",
+  hero_cta1_text: "Book Consultation",
+  hero_cta1_link: "mailto:escapercreatives@gmail.com",
+  hero_cta2_text: "View Our Work",
+  hero_cta2_link: "/work",
+  services_title: "What We Do",
+  service1_title: "Social Media Management",
+  service1_desc: "End-to-end management of your Instagram, TikTok, and Facebook to build a cult following.",
+  service2_title: "Content Creation",
+  service2_desc: "High-end food photography, aesthetic reels, and cinematic videos that make people hungry.",
+  service3_title: "Paid Ads",
+  service3_desc: "Laser-targeted campaigns to drive foot traffic, reservations, and immediate ROI.",
+  about_title: "About Escaper Creatives",
+  about_desc: "We are a boutique social media agency exclusively dedicated to the hospitality industry. We understand that aesthetics, vibe, and presentation are everything for a modern cafe, restaurant, or resort. Our mission is to translate your physical atmosphere into a magnetic digital presence.",
+  footer_tagline: "The Premier Social Media Agency for Hospitality",
+  footer_email: "escapercreatives@gmail.com",
+  footer_ig_label: "Instagram (@escaper.creatives)",
+  footer_ig_link: "https://instagram.com/escaper.creatives"
+};
+
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   let latestAds: any[] = [];
   let clients: any[] = [];
+  let settings: Record<string, string> = { ...DEFAULT_SETTINGS };
 
   try {
     latestAds = await prisma.ad.findMany({
@@ -24,6 +48,15 @@ export default async function Home() {
     });
   } catch (error) {
     console.error("Failed to fetch clients from database:", error);
+  }
+
+  try {
+    const settingsList = await prisma.settings.findMany();
+    settingsList.forEach((s) => {
+      settings[s.key] = s.value;
+    });
+  } catch (error) {
+    console.error("Failed to fetch settings from database:", error);
   }
 
   const adsToRender = latestAds.length > 0 ? latestAds : [
@@ -73,17 +106,17 @@ export default async function Home() {
               <img src="/logo.png" alt="Escaper Creatives" className={styles.heroLogo} />
             </div>
             <h1 className={styles.title}>
-              We Make Your Hospitality Brand <span className={styles.highlight}>Unignorable.</span>
+              {settings.hero_title} <span className={styles.highlight}>{settings.hero_highlight}</span>
             </h1>
             <p className={styles.subtitle}>
-              Escaper Creatives is the premier social media agency for cafes, restaurants, hotels, and resorts. Let us tell your story.
+              {settings.hero_subtitle}
             </p>
             <div className={styles.ctaGroup}>
-              <Link href="mailto:escapercreatives@gmail.com">
-                <button className={styles.primaryBtn}>Book Consultation</button>
+              <Link href={settings.hero_cta1_link}>
+                <button className={styles.primaryBtn}>{settings.hero_cta1_text}</button>
               </Link>
-              <Link href="/work">
-                <button className={styles.secondaryBtn}>View Our Work</button>
+              <Link href={settings.hero_cta2_link}>
+                <button className={styles.secondaryBtn}>{settings.hero_cta2_text}</button>
               </Link>
             </div>
           </div>
@@ -121,19 +154,19 @@ export default async function Home() {
       {/* Services Section */}
       <section id="services" className={styles.section}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>What We Do</h2>
+          <h2 className={styles.sectionTitle}>{settings.services_title}</h2>
           <div className={styles.servicesGrid}>
             <div className={styles.serviceCard}>
-              <h3>Social Media Management</h3>
-              <p>End-to-end management of your Instagram, TikTok, and Facebook to build a cult following.</p>
+              <h3>{settings.service1_title}</h3>
+              <p>{settings.service1_desc}</p>
             </div>
             <div className={styles.serviceCard}>
-              <h3>Content Creation</h3>
-              <p>High-end food photography, aesthetic reels, and cinematic videos that make people hungry.</p>
+              <h3>{settings.service2_title}</h3>
+              <p>{settings.service2_desc}</p>
             </div>
             <div className={styles.serviceCard}>
-              <h3>Paid Ads</h3>
-              <p>Laser-targeted campaigns to drive foot traffic, reservations, and immediate ROI.</p>
+              <h3>{settings.service3_title}</h3>
+              <p>{settings.service3_desc}</p>
             </div>
           </div>
         </div>
@@ -143,11 +176,9 @@ export default async function Home() {
       <section id="about" className={styles.section}>
         <div className={styles.container}>
           <div className={styles.aboutContent}>
-            <h2 className={styles.sectionTitle}>About Escaper Creatives</h2>
+            <h2 className={styles.sectionTitle}>{settings.about_title}</h2>
             <p className={styles.aboutText}>
-              We are a boutique social media agency exclusively dedicated to the hospitality industry. 
-              We understand that aesthetics, vibe, and presentation are everything for a modern cafe, restaurant, or resort. 
-              Our mission is to translate your physical atmosphere into a magnetic digital presence.
+              {settings.about_desc}
             </p>
           </div>
         </div>
@@ -158,10 +189,10 @@ export default async function Home() {
         <div className={styles.container}>
           <div className={styles.footerContent}>
             <h2 className={styles.footerBrand}>Escaper Creatives</h2>
-            <p className={styles.footerTagline}>The Premier Social Media Agency for Hospitality</p>
+            <p className={styles.footerTagline}>{settings.footer_tagline}</p>
             <div className={styles.footerLinks}>
-              <a href="mailto:escapercreatives@gmail.com" className={styles.footerLink}>escapercreatives@gmail.com</a>
-              <a href="https://instagram.com/escaper.creatives" target="_blank" rel="noreferrer" className={styles.footerLink}>Instagram (@escaper.creatives)</a>
+              <a href={`mailto:${settings.footer_email}`} className={styles.footerLink}>{settings.footer_email}</a>
+              <a href={settings.footer_ig_link} target="_blank" rel="noreferrer" className={styles.footerLink}>{settings.footer_ig_label}</a>
             </div>
           </div>
           <div className={styles.footerBottom}>

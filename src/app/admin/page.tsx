@@ -23,11 +23,66 @@ export default function AdminPortal() {
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null);
   const [isUploadingPortfolio, setIsUploadingPortfolio] = useState(false);
 
+  const [activeTab, setActiveTab] = useState<'hero' | 'services' | 'about' | 'footer'>('hero');
+  const [settings, setSettings] = useState<Record<string, string>>({
+    hero_title: "",
+    hero_highlight: "",
+    hero_subtitle: "",
+    hero_cta1_text: "",
+    hero_cta1_link: "",
+    hero_cta2_text: "",
+    hero_cta2_link: "",
+    services_title: "",
+    service1_title: "",
+    service1_desc: "",
+    service2_title: "",
+    service2_desc: "",
+    service3_title: "",
+    service3_desc: "",
+    about_title: "",
+    about_desc: "",
+    footer_tagline: "",
+    footer_email: "",
+    footer_ig_label: "",
+    footer_ig_link: ""
+  });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
   useEffect(() => {
     fetchAds();
     fetchClients();
     fetchPortfolio();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    const res = await fetch('/api/settings', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      setSettings(prev => ({ ...prev, ...data }));
+    }
+  };
+
+  const handleSettingsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+      if (res.ok) {
+        alert("Website customized successfully!");
+      } else {
+        alert("Failed to save customization.");
+      }
+    } catch (err: any) {
+      alert("Error saving customization: " + err.message);
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
 
   const fetchAds = async () => {
     const res = await fetch('/api/ads', { cache: 'no-store' });
@@ -354,6 +409,286 @@ export default function AdminPortal() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Website Customizer Card */}
+        <div className={styles.card} style={{ marginTop: '2rem' }}>
+          <h2 className={styles.cardTitle}>Website Content Customizer (Live Editor)</h2>
+          <p style={{ color: 'rgba(255, 255, 255, 0.6)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Customize all the text, headings, buttons, and links visible on the main page. Changes apply instantly.
+          </p>
+          
+          {/* Tab Navigation */}
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', overflowX: 'auto' }}>
+            {(['hero', 'services', 'about', 'footer'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: activeTab === tab ? 'var(--accent)' : 'transparent',
+                  color: activeTab === tab ? '#000' : '#fff',
+                  border: '1px solid ' + (activeTab === tab ? 'var(--accent)' : 'var(--border-color)'),
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {tab} Section
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={handleSettingsSubmit}>
+            {activeTab === 'hero' && (
+              <div>
+                <div className={styles.formGroup}>
+                  <label>Hero Title (Main Heading Line)</label>
+                  <input 
+                    type="text" 
+                    className={styles.input} 
+                    value={settings.hero_title}
+                    onChange={(e) => setSettings({ ...settings, hero_title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Hero Highlighted Word (Gold Highlight text at the end)</label>
+                  <input 
+                    type="text" 
+                    className={styles.input} 
+                    value={settings.hero_highlight}
+                    onChange={(e) => setSettings({ ...settings, hero_highlight: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Hero Subtitle / Description</label>
+                  <textarea 
+                    className={styles.input} 
+                    style={{ minHeight: '100px', resize: 'vertical' }}
+                    value={settings.hero_subtitle}
+                    onChange={(e) => setSettings({ ...settings, hero_subtitle: e.target.value })}
+                    required
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className={styles.formGroup}>
+                    <label>CTA Button 1 Text (Primary Button)</label>
+                    <input 
+                      type="text" 
+                      className={styles.input} 
+                      value={settings.hero_cta1_text}
+                      onChange={(e) => setSettings({ ...settings, hero_cta1_text: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>CTA Button 1 Link (e.g. mailto:email@domain.com)</label>
+                    <input 
+                      type="text" 
+                      className={styles.input} 
+                      value={settings.hero_cta1_link}
+                      onChange={(e) => setSettings({ ...settings, hero_cta1_link: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className={styles.formGroup}>
+                    <label>CTA Button 2 Text (Secondary Button)</label>
+                    <input 
+                      type="text" 
+                      className={styles.input} 
+                      value={settings.hero_cta2_text}
+                      onChange={(e) => setSettings({ ...settings, hero_cta2_text: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>CTA Button 2 Link (e.g. /work)</label>
+                    <input 
+                      type="text" 
+                      className={styles.input} 
+                      value={settings.hero_cta2_link}
+                      onChange={(e) => setSettings({ ...settings, hero_cta2_link: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'services' && (
+              <div>
+                <div className={styles.formGroup}>
+                  <label>Services Heading</label>
+                  <input 
+                    type="text" 
+                    className={styles.input} 
+                    value={settings.services_title}
+                    onChange={(e) => setSettings({ ...settings, services_title: e.target.value })}
+                    required
+                  />
+                </div>
+                
+                {/* Service 1 */}
+                <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginBottom: '1.5rem', background: 'rgba(0,0,0,0.1)' }}>
+                  <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}>Service Card 1</h4>
+                  <div className={styles.formGroup}>
+                    <label>Title</label>
+                    <input 
+                      type="text" 
+                      className={styles.input} 
+                      value={settings.service1_title}
+                      onChange={(e) => setSettings({ ...settings, service1_title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+                    <label>Description</label>
+                    <textarea 
+                      className={styles.input} 
+                      style={{ minHeight: '60px', resize: 'vertical' }}
+                      value={settings.service1_desc}
+                      onChange={(e) => setSettings({ ...settings, service1_desc: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Service 2 */}
+                <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginBottom: '1.5rem', background: 'rgba(0,0,0,0.1)' }}>
+                  <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}>Service Card 2</h4>
+                  <div className={styles.formGroup}>
+                    <label>Title</label>
+                    <input 
+                      type="text" 
+                      className={styles.input} 
+                      value={settings.service2_title}
+                      onChange={(e) => setSettings({ ...settings, service2_title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+                    <label>Description</label>
+                    <textarea 
+                      className={styles.input} 
+                      style={{ minHeight: '60px', resize: 'vertical' }}
+                      value={settings.service2_desc}
+                      onChange={(e) => setSettings({ ...settings, service2_desc: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Service 3 */}
+                <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginBottom: '1.5rem', background: 'rgba(0,0,0,0.1)' }}>
+                  <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}>Service Card 3</h4>
+                  <div className={styles.formGroup}>
+                    <label>Title</label>
+                    <input 
+                      type="text" 
+                      className={styles.input} 
+                      value={settings.service3_title}
+                      onChange={(e) => setSettings({ ...settings, service3_title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+                    <label>Description</label>
+                    <textarea 
+                      className={styles.input} 
+                      style={{ minHeight: '60px', resize: 'vertical' }}
+                      value={settings.service3_desc}
+                      onChange={(e) => setSettings({ ...settings, service3_desc: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'about' && (
+              <div>
+                <div className={styles.formGroup}>
+                  <label>About Heading Title</label>
+                  <input 
+                    type="text" 
+                    className={styles.input} 
+                    value={settings.about_title}
+                    onChange={(e) => setSettings({ ...settings, about_title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>About Paragraph Text</label>
+                  <textarea 
+                    className={styles.input} 
+                    style={{ minHeight: '150px', resize: 'vertical' }}
+                    value={settings.about_desc}
+                    onChange={(e) => setSettings({ ...settings, about_desc: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'footer' && (
+              <div>
+                <div className={styles.formGroup}>
+                  <label>Footer Tagline / Short Description</label>
+                  <input 
+                    type="text" 
+                    className={styles.input} 
+                    value={settings.footer_tagline}
+                    onChange={(e) => setSettings({ ...settings, footer_tagline: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Footer Email</label>
+                  <input 
+                    type="email" 
+                    className={styles.input} 
+                    value={settings.footer_email}
+                    onChange={(e) => setSettings({ ...settings, footer_email: e.target.value })}
+                    required
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className={styles.formGroup}>
+                    <label>Instagram Label / Username Text</label>
+                    <input 
+                      type="text" 
+                      className={styles.input} 
+                      value={settings.footer_ig_label}
+                      onChange={(e) => setSettings({ ...settings, footer_ig_label: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Instagram Link URL</label>
+                    <input 
+                      type="text" 
+                      className={styles.input} 
+                      value={settings.footer_ig_link}
+                      onChange={(e) => setSettings({ ...settings, footer_ig_link: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button type="submit" className={styles.submitBtn} style={{ marginTop: '1.5rem' }} disabled={isSavingSettings}>
+              {isSavingSettings ? 'Saving Changes... Please Wait' : 'Save Customized Changes'}
+            </button>
+          </form>
         </div>
       </div>
     </main>
