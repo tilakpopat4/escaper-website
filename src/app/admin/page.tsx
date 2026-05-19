@@ -105,6 +105,12 @@ export default function AdminPortal() {
 
     let finalImageUrl = adForm.imageUrl;
 
+    if (!adFile && !finalImageUrl) {
+      alert("Please upload a file OR paste a manual URL!");
+      setIsUploadingAd(false);
+      return;
+    }
+
     if (adFile) {
       try {
         let fileName = adFile.name;
@@ -268,14 +274,32 @@ export default function AdminPortal() {
                 />
               </div>
               <div className={styles.formGroup}>
-                <label>Ad Media File (Upload Image/Video)</label>
+                <label>Ad Media (Choose File OR Paste URL)</label>
                 <input 
                   type="file" 
                   className={styles.input} 
-                  onChange={(e) => setAdFile(e.target.files ? e.target.files[0] : null)}
+                  onChange={(e) => {
+                    setAdFile(e.target.files ? e.target.files[0] : null);
+                    if (e.target.files && e.target.files[0]) {
+                      setAdForm({ ...adForm, imageUrl: '' });
+                    }
+                  }}
                   accept="image/*,video/*"
-                  required
                 />
+                <div style={{ textAlign: 'center', margin: '0.5rem 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>— OR —</div>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  placeholder="Paste manual image/video URL (e.g. https://utfs.io/f/...)"
+                  value={adForm.imageUrl}
+                  onChange={(e) => {
+                    setAdForm({...adForm, imageUrl: e.target.value});
+                    setAdFile(null);
+                  }}
+                />
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+                  💡 Tip: If you paste a manual video link, make sure to add <strong>?video=true</strong> at the very end of the URL!
+                </p>
               </div>
               <button type="submit" className={styles.submitBtn} disabled={isUploadingAd}>
                 {isUploadingAd ? 'Uploading... Please Wait' : 'Update Featured Ad'}
