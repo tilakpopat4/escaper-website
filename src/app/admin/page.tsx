@@ -7,6 +7,14 @@ import { useUploadThing } from '@/utils/uploadthing';
 
 export default function AdminPortal() {
   const { startUpload } = useUploadThing("mediaUploader");
+  
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [adminPassword, setAdminPassword] = useState<string | null>(null);
+
+  // Panel state
   const [ads, setAds] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   
@@ -49,11 +57,61 @@ export default function AdminPortal() {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   useEffect(() => {
-    fetchAds();
-    fetchClients();
-    fetchPortfolio();
-    fetchSettings();
+    const savedPassword = sessionStorage.getItem('admin_password');
+    if (savedPassword) {
+      verifySavedPassword(savedPassword);
+    }
   }, []);
+
+  const verifySavedPassword = async (p: string) => {
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: p })
+      });
+      if (res.ok) {
+        setAdminPassword(p);
+        setIsAuthenticated(true);
+        // Run all initial loads after auth
+        fetchAds();
+        fetchClients();
+        fetchPortfolio();
+        fetchSettings();
+      } else {
+        sessionStorage.removeItem('admin_password');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput })
+      });
+      if (res.ok) {
+        sessionStorage.setItem('admin_password', passwordInput);
+        setAdminPassword(passwordInput);
+        setIsAuthenticated(true);
+        // Run all initial loads
+        fetchAds();
+        fetchClients();
+        fetchPortfolio();
+        fetchSettings();
+      } else {
+        const data = await res.json();
+        setAuthError(data.error || "Incorrect password");
+      }
+    } catch (err: any) {
+      setAuthError("Server communication error: " + err.message);
+    }
+  };
 
   const fetchSettings = async () => {
     const res = await fetch('/api/settings', { cache: 'no-store' });
@@ -69,7 +127,10 @@ export default function AdminPortal() {
     try {
       const res = await fetch('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-password': adminPassword || ''
+        },
         body: JSON.stringify(settings)
       });
       if (res.ok) {
@@ -137,7 +198,10 @@ export default function AdminPortal() {
     try {
       await fetch('/api/ads', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-password': adminPassword || ''
+        },
         body: JSON.stringify({ ...adForm, imageUrl: finalImageUrl })
       });
     } catch (e) {
@@ -173,7 +237,10 @@ export default function AdminPortal() {
     try {
       await fetch('/api/clients', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-password': adminPassword || ''
+        },
         body: JSON.stringify({ ...clientForm, logoUrl: finalLogoUrl })
       });
     } catch(e) {
@@ -187,13 +254,23 @@ export default function AdminPortal() {
 
   const handleDeleteAd = async (id: string) => {
     if (!confirm('Are you sure you want to delete this Ad?')) return;
-    await fetch(`/api/ads?id=${id}`, { method: 'DELETE' });
+    await fetch(`/api/ads?id=${id}`, { 
+      method: 'DELETE',
+      headers: {
+        'x-admin-password': adminPassword || ''
+      }
+    });
     fetchAds();
   };
 
   const handleDeleteClient = async (id: string) => {
     if (!confirm('Are you sure you want to delete this Client?')) return;
-    await fetch(`/api/clients?id=${id}`, { method: 'DELETE' });
+    await fetch(`/api/clients?id=${id}`, { 
+      method: 'DELETE',
+      headers: {
+        'x-admin-password': adminPassword || ''
+      }
+    });
     fetchClients();
   };
 
@@ -229,7 +306,10 @@ export default function AdminPortal() {
     try {
       await fetch('/api/portfolio', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-password': adminPassword || ''
+        },
         body: JSON.stringify(payload)
       });
     } catch(e) {
@@ -244,18 +324,90 @@ export default function AdminPortal() {
 
   const handleDeletePortfolio = async (id: string) => {
     if (!confirm('Are you sure you want to delete this Work item?')) return;
-    await fetch(`/api/portfolio?id=${id}`, { method: 'DELETE' });
+    await fetch(`/api/portfolio?id=${id}`, { 
+      method: 'DELETE',
+      headers: {
+        'x-admin-password': adminPassword || ''
+      }
+    });
     fetchPortfolio();
   };
 
+  // Auth Card Render
+  if (!isAuthenticated) {
+    return (
+      <main className={styles.loginContainer}>
+        {/* Animated Background */}
+        <div className={styles.heroBg}>
+          <div className={styles.gradientOrb1}></div>
+          <div className={styles.gradientOrb2}></div>
+          <div className={styles.gradientOrb3}></div>
+          <div className={styles.noiseOverlay}></div>
+        </div>
+
+        <div className={styles.loginCard}>
+          <div className={styles.loginHeader}>
+            <div className={styles.loginLogo}>
+              <span style={{ color: 'var(--accent)' }}>ESCAPER</span> CREATIVES
+            </div>
+            <h2 className={styles.loginSubtitle}>Admin Security Lock</h2>
+          </div>
+          <form onSubmit={handleLoginSubmit}>
+            <div className={styles.formGroup} style={{ marginBottom: '2rem' }}>
+              <label style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', marginBottom: '0.75rem', display: 'block', textAlign: 'center' }}>
+                Enter Admin Security Key
+              </label>
+              <input 
+                type="password" 
+                className={styles.input} 
+                style={{ textAlign: 'center', fontSize: '1.2rem', letterSpacing: '0.2em' }}
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="••••••••"
+                required 
+              />
+            </div>
+            {authError && (
+              <p style={{ color: '#ff4444', fontSize: '0.9rem', margin: '-1rem 0 1.5rem', textAlign: 'center', fontWeight: '500' }}>
+                ❌ {authError}
+              </p>
+            )}
+            <button type="submit" className={styles.submitBtn}>
+              Unlock Portal
+            </button>
+          </form>
+          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+            <Link href="/" style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: '0.9rem' }}>
+              ← Return to Main Page
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Dashboard Render
   return (
     <main className={styles.main}>
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Admin Portal</h1>
-          <Link href="/">
-            <button className={styles.backBtn}>Back to Site</button>
-          </Link>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button 
+              className={styles.backBtn}
+              onClick={() => {
+                sessionStorage.removeItem('admin_password');
+                setAdminPassword(null);
+                setIsAuthenticated(false);
+              }}
+              style={{ background: 'rgba(255,50,50,0.15)', borderColor: 'rgba(255,50,50,0.3)', color: '#ff6666' }}
+            >
+              Log Out
+            </button>
+            <Link href="/">
+              <button className={styles.backBtn}>Back to Site</button>
+            </Link>
+          </div>
         </div>
 
         <div className={styles.dashboardGrid}>
@@ -307,14 +459,22 @@ export default function AdminPortal() {
             </form>
 
             <div className={styles.list}>
-              {ads.slice(0, 10).map(ad => (
+              <h3>Active Ads</h3>
+              {ads.map((ad) => (
                 <div key={ad.id} className={styles.listItem}>
-                  <div>
-                    <div className={styles.itemTitle}>{ad.title}</div>
-                    <div className={styles.itemSub}>{new Date(ad.createdAt).toLocaleDateString()}</div>
-                    <button onClick={() => handleDeleteAd(ad.id)} className={styles.deleteBtn} style={{ marginTop: 10 }}>Delete</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {ad.imageUrl && (
+                      ad.imageUrl.match(/\.(mp4|webm|ogg|mov)(\?|$|-|%)/i) || ad.imageUrl.includes('video=true') ? (
+                        <span style={{ fontSize: '1.5rem' }}>🎥</span>
+                      ) : (
+                        <img src={ad.imageUrl} alt={ad.title} className={styles.itemMedia} />
+                      )
+                    )}
+                    <div>
+                      <div className={styles.itemTitle}>{ad.title}</div>
+                    </div>
                   </div>
-                  <img src={ad.imageUrl} alt="Ad media" className={styles.itemMedia} />
+                  <button className={styles.deleteBtn} onClick={() => handleDeleteAd(ad.id)}>Delete</button>
                 </div>
               ))}
             </div>
@@ -335,61 +495,62 @@ export default function AdminPortal() {
                 />
               </div>
               <div className={styles.formGroup}>
+                <label>Instagram URL</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={clientForm.instagramUrl}
+                  onChange={(e) => setClientForm({...clientForm, instagramUrl: e.target.value})}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Website URL</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={clientForm.websiteUrl}
+                  onChange={(e) => setClientForm({...clientForm, websiteUrl: e.target.value})}
+                />
+              </div>
+              <div className={styles.formGroup}>
                 <label>Client Logo File</label>
                 <input 
                   type="file" 
                   className={styles.input} 
                   onChange={(e) => setClientFile(e.target.files ? e.target.files[0] : null)}
                   accept="image/*"
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Instagram URL (Optional)</label>
-                <input 
-                  type="text" 
-                  className={styles.input} 
-                  value={clientForm.instagramUrl}
-                  onChange={(e) => setClientForm({...clientForm, instagramUrl: e.target.value})}
-                  placeholder="https://instagram.com/..."
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Website URL (Optional)</label>
-                <input 
-                  type="text" 
-                  className={styles.input} 
-                  value={clientForm.websiteUrl}
-                  onChange={(e) => setClientForm({...clientForm, websiteUrl: e.target.value})}
-                  placeholder="https://..."
+                  required
                 />
               </div>
               <button type="submit" className={styles.submitBtn} disabled={isUploadingClient}>
-                {isUploadingClient ? 'Uploading... Please Wait' : 'Add Client'}
+                {isUploadingClient ? 'Uploading Logo... Please Wait' : 'Add Client'}
               </button>
             </form>
 
             <div className={styles.list}>
-              {clients.map(client => (
+              <h3>Current Clients</h3>
+              {clients.map((client) => (
                 <div key={client.id} className={styles.listItem}>
-                  <div>
-                    <div className={styles.itemTitle}>{client.name}</div>
-                    <div className={styles.itemSub}>
-                      {client.instagramUrl && <a href={client.instagramUrl} target="_blank" style={{color: 'var(--accent)', marginRight: 10}}>IG</a>}
-                      {client.websiteUrl && <a href={client.websiteUrl} target="_blank" style={{color: '#fff'}}>Web</a>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <img src={client.logoUrl} alt={client.name} className={styles.itemMedia} />
+                    <div>
+                      <div className={styles.itemTitle}>{client.name}</div>
                     </div>
-                    <button onClick={() => handleDeleteClient(client.id)} className={styles.deleteBtn} style={{ marginTop: 10 }}>Delete</button>
                   </div>
-                  {client.logoUrl && <img src={client.logoUrl} alt="logo" className={styles.itemMedia} />}
+                  <button className={styles.deleteBtn} onClick={() => handleDeleteClient(client.id)}>Delete</button>
                 </div>
               ))}
             </div>
           </div>
-          {/* Portfolio Management */}
-          <div className={styles.card}>
-            <h2 className={styles.cardTitle}>Manage Portfolio (Work)</h2>
-            <form onSubmit={handlePortfolioSubmit}>
+        </div>
+
+        {/* Portfolio / Work Management */}
+        <div className={styles.card} style={{ marginTop: '2rem' }}>
+          <h2 className={styles.cardTitle}>Manage Work Portfolio</h2>
+          <form onSubmit={handlePortfolioSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
               <div className={styles.formGroup}>
-                <label>Title / Caption</label>
+                <label>Project Title</label>
                 <input 
                   type="text" 
                   className={styles.input} 
@@ -399,82 +560,103 @@ export default function AdminPortal() {
                 />
               </div>
               <div className={styles.formGroup}>
-                <label>Client Name (Optional)</label>
+                <label>Client Name</label>
                 <input 
                   type="text" 
                   className={styles.input} 
                   value={portfolioForm.clientName}
                   onChange={(e) => setPortfolioForm({...portfolioForm, clientName: e.target.value})}
+                  required 
                 />
               </div>
               <div className={styles.formGroup}>
-                <label>Media File (Image or Video)</label>
+                <label>Category (e.g. Content, Social Media, Ads)</label>
                 <input 
-                  type="file" 
+                  type="text" 
                   className={styles.input} 
-                  onChange={(e) => setPortfolioFile(e.target.files ? e.target.files[0] : null)}
-                  accept="image/*,video/*"
-                  required
+                  value={portfolioForm.category}
+                  onChange={(e) => setPortfolioForm({...portfolioForm, category: e.target.value})}
+                  required 
                 />
               </div>
-              <button type="submit" className={styles.submitBtn} disabled={isUploadingPortfolio}>
-                {isUploadingPortfolio ? 'Uploading... Please Wait' : 'Add to Portfolio'}
-              </button>
-            </form>
+            </div>
+            
+            <div className={styles.formGroup}>
+              <label>Work Media File (Image or Video)</label>
+              <input 
+                type="file" 
+                className={styles.input} 
+                onChange={(e) => setPortfolioFile(e.target.files ? e.target.files[0] : null)}
+                accept="image/*,video/*"
+                required
+              />
+            </div>
+            <button type="submit" className={styles.submitBtn} disabled={isUploadingPortfolio}>
+              {isUploadingPortfolio ? 'Uploading Media... Please Wait' : 'Add Work Item'}
+            </button>
+          </form>
 
-            <div className={styles.list}>
-              {portfolio.map(item => (
-                <div key={item.id} className={styles.listItem}>
+          <div className={styles.list}>
+            <h3>Work Items</h3>
+            {portfolio.map((item) => (
+              <div key={item.id} className={styles.listItem}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  {item.videoUrl ? (
+                    <span style={{ fontSize: '1.5rem' }}>🎥</span>
+                  ) : (
+                    <img src={item.imageUrl} alt={item.title} className={styles.itemMedia} />
+                  )}
                   <div>
                     <div className={styles.itemTitle}>{item.title}</div>
-                    <div className={styles.itemSub}>{item.clientName}</div>
-                    <button onClick={() => handleDeletePortfolio(item.id)} className={styles.deleteBtn} style={{ marginTop: 10 }}>Delete</button>
+                    <div className={styles.itemSub}>{item.clientName} | {item.category}</div>
                   </div>
-                  {item.imageUrl && <img src={item.imageUrl} alt="portfolio" className={styles.itemMedia} />}
-                  {item.videoUrl && <video src={item.videoUrl} className={styles.itemMedia} style={{ objectFit: 'contain' }} muted />}
                 </div>
-              ))}
-            </div>
+                <button className={styles.deleteBtn} onClick={() => handleDeletePortfolio(item.id)}>Delete</button>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Website Customizer Card */}
+        {/* Global Live Customizer */}
         <div className={styles.card} style={{ marginTop: '2rem' }}>
-          <h2 className={styles.cardTitle}>Website Content Customizer (Live Editor)</h2>
-          <p style={{ color: 'rgba(255, 255, 255, 0.6)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-            Customize all the text, headings, buttons, and links visible on the main page. Changes apply instantly.
-          </p>
+          <h2 className={styles.cardTitle}>Live Website Content Customizer</h2>
           
-          {/* Tab Navigation */}
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', overflowX: 'auto' }}>
-            {(['hero', 'services', 'about', 'footer'] as const).map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: activeTab === tab ? 'var(--accent)' : 'transparent',
-                  color: activeTab === tab ? '#000' : '#fff',
-                  border: '1px solid ' + (activeTab === tab ? 'var(--accent)' : 'var(--border-color)'),
-                  borderRadius: '6px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textTransform: 'capitalize',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {tab} Section
-              </button>
-            ))}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+            <button 
+              className={`${styles.backBtn} ${activeTab === 'hero' ? styles.activeTabBtn : ''}`}
+              onClick={() => setActiveTab('hero')}
+              style={activeTab === 'hero' ? { background: 'var(--accent)', color: '#000' } : {}}
+            >
+              Hero Section
+            </button>
+            <button 
+              className={`${styles.backBtn} ${activeTab === 'services' ? styles.activeTabBtn : ''}`}
+              onClick={() => setActiveTab('services')}
+              style={activeTab === 'services' ? { background: 'var(--accent)', color: '#000' } : {}}
+            >
+              Services
+            </button>
+            <button 
+              className={`${styles.backBtn} ${activeTab === 'about' ? styles.activeTabBtn : ''}`}
+              onClick={() => setActiveTab('about')}
+              style={activeTab === 'about' ? { background: 'var(--accent)', color: '#000' } : {}}
+            >
+              About Us
+            </button>
+            <button 
+              className={`${styles.backBtn} ${activeTab === 'footer' ? styles.activeTabBtn : ''}`}
+              onClick={() => setActiveTab('footer')}
+              style={activeTab === 'footer' ? { background: 'var(--accent)', color: '#000' } : {}}
+            >
+              Footer & Contact
+            </button>
           </div>
 
           <form onSubmit={handleSettingsSubmit}>
             {activeTab === 'hero' && (
               <div>
                 <div className={styles.formGroup}>
-                  <label>Hero Title (Main Heading Line)</label>
+                  <label>Hero Bold Title</label>
                   <input 
                     type="text" 
                     className={styles.input} 
@@ -484,7 +666,7 @@ export default function AdminPortal() {
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Hero Highlighted Word (Gold Highlight text at the end)</label>
+                  <label>Hero Highlighted Word</label>
                   <input 
                     type="text" 
                     className={styles.input} 
@@ -494,7 +676,7 @@ export default function AdminPortal() {
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Hero Subtitle / Description</label>
+                  <label>Hero Subtitle Paragraph</label>
                   <textarea 
                     className={styles.input} 
                     style={{ minHeight: '100px', resize: 'vertical' }}
@@ -505,7 +687,7 @@ export default function AdminPortal() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className={styles.formGroup}>
-                    <label>CTA Button 1 Text (Primary Button)</label>
+                    <label>CTA Button 1 Text (Gold)</label>
                     <input 
                       type="text" 
                       className={styles.input} 
@@ -515,7 +697,7 @@ export default function AdminPortal() {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>CTA Button 1 Link (e.g. mailto:email@domain.com)</label>
+                    <label>CTA Button 1 Link (e.g. mailto:email or #work)</label>
                     <input 
                       type="text" 
                       className={styles.input} 
@@ -527,7 +709,7 @@ export default function AdminPortal() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className={styles.formGroup}>
-                    <label>CTA Button 2 Text (Secondary Button)</label>
+                    <label>CTA Button 2 Text (Transparent)</label>
                     <input 
                       type="text" 
                       className={styles.input} 
@@ -537,7 +719,7 @@ export default function AdminPortal() {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label>CTA Button 2 Link (e.g. /work)</label>
+                    <label>CTA Button 2 Link</label>
                     <input 
                       type="text" 
                       className={styles.input} 
@@ -553,7 +735,7 @@ export default function AdminPortal() {
             {activeTab === 'services' && (
               <div>
                 <div className={styles.formGroup}>
-                  <label>Services Heading</label>
+                  <label>Services Main Title</label>
                   <input 
                     type="text" 
                     className={styles.input} 
@@ -562,12 +744,10 @@ export default function AdminPortal() {
                     required
                   />
                 </div>
-                
-                {/* Service 1 */}
-                <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginBottom: '1.5rem', background: 'rgba(0,0,0,0.1)' }}>
+                <div style={{ border: '1px solid rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '12px', marginBottom: '1rem' }}>
                   <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}>Service Card 1</h4>
                   <div className={styles.formGroup}>
-                    <label>Title</label>
+                    <label>Service 1 Title</label>
                     <input 
                       type="text" 
                       className={styles.input} 
@@ -576,23 +756,21 @@ export default function AdminPortal() {
                       required
                     />
                   </div>
-                  <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                    <label>Description</label>
+                  <div className={styles.formGroup}>
+                    <label>Service 1 Description</label>
                     <textarea 
                       className={styles.input} 
-                      style={{ minHeight: '60px', resize: 'vertical' }}
+                      style={{ minHeight: '80px', resize: 'vertical' }}
                       value={settings.service1_desc}
                       onChange={(e) => setSettings({ ...settings, service1_desc: e.target.value })}
                       required
                     />
                   </div>
                 </div>
-
-                {/* Service 2 */}
-                <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginBottom: '1.5rem', background: 'rgba(0,0,0,0.1)' }}>
+                <div style={{ border: '1px solid rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '12px', marginBottom: '1rem' }}>
                   <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}>Service Card 2</h4>
                   <div className={styles.formGroup}>
-                    <label>Title</label>
+                    <label>Service 2 Title</label>
                     <input 
                       type="text" 
                       className={styles.input} 
@@ -601,23 +779,21 @@ export default function AdminPortal() {
                       required
                     />
                   </div>
-                  <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                    <label>Description</label>
+                  <div className={styles.formGroup}>
+                    <label>Service 2 Description</label>
                     <textarea 
                       className={styles.input} 
-                      style={{ minHeight: '60px', resize: 'vertical' }}
+                      style={{ minHeight: '80px', resize: 'vertical' }}
                       value={settings.service2_desc}
                       onChange={(e) => setSettings({ ...settings, service2_desc: e.target.value })}
                       required
                     />
                   </div>
                 </div>
-
-                {/* Service 3 */}
-                <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginBottom: '1.5rem', background: 'rgba(0,0,0,0.1)' }}>
+                <div style={{ border: '1px solid rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '12px', marginBottom: '1rem' }}>
                   <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}>Service Card 3</h4>
                   <div className={styles.formGroup}>
-                    <label>Title</label>
+                    <label>Service 3 Title</label>
                     <input 
                       type="text" 
                       className={styles.input} 
@@ -626,11 +802,11 @@ export default function AdminPortal() {
                       required
                     />
                   </div>
-                  <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                    <label>Description</label>
+                  <div className={styles.formGroup}>
+                    <label>Service 3 Description</label>
                     <textarea 
                       className={styles.input} 
-                      style={{ minHeight: '60px', resize: 'vertical' }}
+                      style={{ minHeight: '80px', resize: 'vertical' }}
                       value={settings.service3_desc}
                       onChange={(e) => setSettings({ ...settings, service3_desc: e.target.value })}
                       required
@@ -643,7 +819,7 @@ export default function AdminPortal() {
             {activeTab === 'about' && (
               <div>
                 <div className={styles.formGroup}>
-                  <label>About Heading Title</label>
+                  <label>About Us Section Title</label>
                   <input 
                     type="text" 
                     className={styles.input} 
@@ -653,7 +829,7 @@ export default function AdminPortal() {
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>About Paragraph Text</label>
+                  <label>About Us Description Paragraph</label>
                   <textarea 
                     className={styles.input} 
                     style={{ minHeight: '150px', resize: 'vertical' }}
@@ -668,7 +844,7 @@ export default function AdminPortal() {
             {activeTab === 'footer' && (
               <div>
                 <div className={styles.formGroup}>
-                  <label>Footer Tagline / Short Description</label>
+                  <label>Footer Branding Tagline</label>
                   <input 
                     type="text" 
                     className={styles.input} 

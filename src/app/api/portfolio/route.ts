@@ -15,8 +15,14 @@ export async function GET() {
   }
 }
 
+import { verifyAdmin } from '@/utils/auth';
+
 export async function POST(request: Request) {
   try {
+    if (!verifyAdmin(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
     const newPortfolio = await prisma.portfolio.create({
       data: {
@@ -37,6 +43,10 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    if (!verifyAdmin(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });

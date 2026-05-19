@@ -19,8 +19,14 @@ export async function GET() {
   }
 }
 
+import { verifyAdmin } from '@/utils/auth';
+
 export async function POST(request: Request) {
   try {
+    if (!verifyAdmin(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
     
     await Promise.all(
