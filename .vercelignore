@@ -1,0 +1,6 @@
+# Ignore heavy media uploads in Vercel CLI
+public/uploads
+.git
+.next
+node_modules
+*.db
