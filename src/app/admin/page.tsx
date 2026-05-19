@@ -115,6 +115,9 @@ export default function AdminPortal() {
         const res = await startUpload([renamedFile]);
         if (res && res[0]) {
           finalImageUrl = res[0].url;
+          if (adFile.type.startsWith('video/')) {
+            finalImageUrl += '?video=true';
+          }
         } else {
           throw new Error("Upload returned no URL");
         }

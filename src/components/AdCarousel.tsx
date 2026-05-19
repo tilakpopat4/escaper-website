@@ -54,7 +54,10 @@ export default function AdCarousel({ ads }: { ads: any[] }) {
                     <h2 className={styles.adTitle}>{ad.title}</h2>
                     <button className={styles.primaryBtn}>Watch Video</button>
                   </div>
-                  {ad.imageUrl?.match(/\.(mp4|webm|ogg|mov)(\?|$|-|%)/i) || ad.imageUrl?.match(/\.(mp4|webm|ogg|mov)$/i) ? (
+                  {ad.imageUrl?.match(/\.(mp4|webm|ogg|mov)(\?|$|-|%)/i) || 
+                   ad.imageUrl?.match(/\.(mp4|webm|ogg|mov)$/i) || 
+                   ad.imageUrl?.includes('video=true') || 
+                   ad.imageUrl?.includes('.mp4') ? (
                     <video 
                       ref={(el) => { videoRefs.current[index] = el; }}
                       src={ad.imageUrl} 
