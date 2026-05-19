@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import Link from 'next/link';
-import { upload } from '@vercel/blob/client';
+import { useUploadThing } from '@/utils/uploadthing';
 
 export default function AdminPortal() {
+  const { startUpload } = useUploadThing("mediaUploader");
   const [ads, setAds] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   
@@ -55,11 +56,13 @@ export default function AdminPortal() {
         if (adFile.type.startsWith('video/') && !fileName.match(/\.(mp4|webm|ogg|mov)$/i)) {
           fileName += '.mp4';
         }
-        const blob = await upload(fileName, adFile, {
-          access: 'public',
-          handleUploadUrl: '/api/upload',
-        });
-        finalImageUrl = blob.url;
+        const renamedFile = new File([adFile], fileName, { type: adFile.type });
+        const res = await startUpload([renamedFile]);
+        if (res && res[0]) {
+          finalImageUrl = res[0].url;
+        } else {
+          throw new Error("Upload returned no URL");
+        }
       } catch (err: any) {
         alert("Image upload failed! " + err.message);
         setIsUploadingAd(false);
@@ -90,11 +93,12 @@ export default function AdminPortal() {
 
     if (clientFile) {
       try {
-        const blob = await upload(clientFile.name, clientFile, {
-          access: 'public',
-          handleUploadUrl: '/api/upload',
-        });
-        finalLogoUrl = blob.url;
+        const res = await startUpload([clientFile]);
+        if (res && res[0]) {
+          finalLogoUrl = res[0].url;
+        } else {
+          throw new Error("Upload returned no URL");
+        }
       } catch (err: any) {
         alert("Logo upload failed! " + err.message);
         setIsUploadingClient(false);
@@ -139,11 +143,12 @@ export default function AdminPortal() {
     if (portfolioFile) {
       if (portfolioFile.type.startsWith('video/')) isVideo = true;
       try {
-        const blob = await upload(portfolioFile.name, portfolioFile, {
-          access: 'public',
-          handleUploadUrl: '/api/upload',
-        });
-        mediaUrl = blob.url;
+        const res = await startUpload([portfolioFile]);
+        if (res && res[0]) {
+          mediaUrl = res[0].url;
+        } else {
+          throw new Error("Upload returned no URL");
+        }
       } catch (err: any) {
         alert("Media upload failed! " + err.message);
         setIsUploadingPortfolio(false);
