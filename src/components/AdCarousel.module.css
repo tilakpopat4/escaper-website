@@ -154,3 +154,46 @@
 .rightBtn {
   right: 2rem;
 }
+
+@media (max-width: 768px) {
+  .carouselContainer {
+    min-height: 60vh;
+  }
+  .slidesWrapper {
+    height: 60vh;
+  }
+  .adWrapper {
+    max-width: 95vw;
+    border-radius: 16px;
+  }
+  .adScreen {
+    min-width: 260px;
+    min-height: 320px;
+    border-radius: 16px;
+  }
+  .adMedia {
+    max-height: 60vh;
+  }
+  .adOverlay {
+    padding: 1.5rem;
+  }
+  .adTitle {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .primaryBtn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+  }
+  .navBtn {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+  .leftBtn {
+    left: 0.5rem;
+  }
+  .rightBtn {
+    right: 0.5rem;
+  }
+}
