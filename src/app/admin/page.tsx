@@ -51,7 +51,11 @@ export default function AdminPortal() {
 
     if (adFile) {
       try {
-        const blob = await upload(adFile.name, adFile, {
+        let fileName = adFile.name;
+        if (adFile.type.startsWith('video/') && !fileName.match(/\.(mp4|webm|ogg|mov)$/i)) {
+          fileName += '.mp4';
+        }
+        const blob = await upload(fileName, adFile, {
           access: 'public',
           handleUploadUrl: '/api/upload',
         });

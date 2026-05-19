@@ -14,6 +14,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       request,
       onBeforeGenerateToken: async (pathname) => {
         return {
+          maximumSizeInBytes: 500 * 1024 * 1024, // 500MB limit for videos
           tokenPayload: JSON.stringify({}),
         };
       },
