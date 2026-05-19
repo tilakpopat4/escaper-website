@@ -14,7 +14,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       request,
       onBeforeGenerateToken: async (pathname) => {
         return {
-          maximumSizeInBytes: 500 * 1024 * 1024, // 500MB limit for videos
+          maximumSizeInBytes: 50 * 1024 * 1024, // 50MB limit (Vercel Hobby Max)
           tokenPayload: JSON.stringify({}),
         };
       },
