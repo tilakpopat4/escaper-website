@@ -25,26 +25,26 @@ export default function AdminPortal() {
 
   const [activeTab, setActiveTab] = useState<'hero' | 'services' | 'about' | 'footer'>('hero');
   const [settings, setSettings] = useState<Record<string, string>>({
-    hero_title: "",
-    hero_highlight: "",
-    hero_subtitle: "",
-    hero_cta1_text: "",
-    hero_cta1_link: "",
-    hero_cta2_text: "",
-    hero_cta2_link: "",
-    services_title: "",
-    service1_title: "",
-    service1_desc: "",
-    service2_title: "",
-    service2_desc: "",
-    service3_title: "",
-    service3_desc: "",
-    about_title: "",
-    about_desc: "",
-    footer_tagline: "",
-    footer_email: "",
-    footer_ig_label: "",
-    footer_ig_link: ""
+    hero_title: "We Make Your Hospitality Brand",
+    hero_highlight: "Unignorable.",
+    hero_subtitle: "Escaper Creatives is the premier social media agency for cafes, restaurants, hotels, and resorts. Let us tell your story.",
+    hero_cta1_text: "Book Consultation",
+    hero_cta1_link: "mailto:escapercreatives@gmail.com",
+    hero_cta2_text: "View Our Work",
+    hero_cta2_link: "/work",
+    services_title: "What We Do",
+    service1_title: "Social Media Management",
+    service1_desc: "End-to-end management of your Instagram, TikTok, and Facebook to build a cult following.",
+    service2_title: "Content Creation",
+    service2_desc: "High-end food photography, aesthetic reels, and cinematic videos that make people hungry.",
+    service3_title: "Paid Ads",
+    service3_desc: "Laser-targeted campaigns to drive foot traffic, reservations, and immediate ROI.",
+    about_title: "About Escaper Creatives",
+    about_desc: "We are a boutique social media agency exclusively dedicated to the hospitality industry. We understand that aesthetics, vibe, and presentation are everything for a modern cafe, restaurant, or resort. Our mission is to translate your physical atmosphere into a magnetic digital presence.",
+    footer_tagline: "The Premier Social Media Agency for Hospitality",
+    footer_email: "escapercreatives@gmail.com",
+    footer_ig_label: "Instagram (@escaper.creatives)",
+    footer_ig_link: "https://instagram.com/escaper.creatives"
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
