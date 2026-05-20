@@ -31,7 +31,7 @@ export default function AdminPortal() {
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null);
   const [isUploadingPortfolio, setIsUploadingPortfolio] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'hero' | 'services' | 'about' | 'footer'>('hero');
+  const [activeTab, setActiveTab] = useState<'hero' | 'services' | 'about' | 'footer' | 'instagram'>('hero');
   const [settings, setSettings] = useState<Record<string, string>>({
     hero_title: "We Make Your Hospitality Brand",
     hero_highlight: "Unignorable.",
