@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import Link from 'next/link';
 import AdCarousel from '@/components/AdCarousel';
+import InstagramPlayer from '@/components/InstagramPlayer';
 
 interface HomeClientProps {
   initialAds: any[];
@@ -147,6 +148,9 @@ export default function HomeClient({ initialAds, initialClients, initialSettings
       <section id="work" className={styles.adSection}>
         <AdCarousel ads={initialAds} />
       </section>
+
+      {/* Miniature Instagram Feed Player */}
+      <InstagramPlayer />
 
       {/* Current Clients Section */}
       <section id="clients" className={styles.section}>
