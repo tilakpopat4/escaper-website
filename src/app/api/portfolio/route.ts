@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       }
     });
     revalidatePath('/work');
+    revalidatePath('/');
     return NextResponse.json(newPortfolio);
   } catch (error) {
     console.error("PORTFOLIO CREATION ERROR:", error);
@@ -53,6 +54,7 @@ export async function DELETE(request: Request) {
 
     await prisma.portfolio.delete({ where: { id } });
     revalidatePath('/work');
+    revalidatePath('/');
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete portfolio item' }, { status: 500 });
