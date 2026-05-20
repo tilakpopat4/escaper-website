@@ -29,6 +29,7 @@ export default function AdminPortal() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [portfolioForm, setPortfolioForm] = useState({ title: '', clientName: '', category: '', isVideo: false });
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isUploadingPortfolio, setIsUploadingPortfolio] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'hero' | 'services' | 'about' | 'footer' | 'instagram'>('hero');
@@ -281,8 +282,10 @@ export default function AdminPortal() {
     setIsUploadingPortfolio(true);
 
     let mediaUrl = '';
+    let coverUrl = '';
     let isVideo = portfolioForm.isVideo;
 
+    // Upload main file
     if (portfolioFile) {
       if (portfolioFile.type.startsWith('video/')) isVideo = true;
       try {
@@ -299,9 +302,25 @@ export default function AdminPortal() {
       }
     }
 
+    // Upload optional cover image
+    if (coverFile) {
+      try {
+        const res = await startUpload([coverFile]);
+        if (res && res[0]) {
+          coverUrl = res[0].url;
+        } else {
+          throw new Error("Cover upload returned no URL");
+        }
+      } catch (err: any) {
+        alert("Cover image upload failed! " + err.message);
+        setIsUploadingPortfolio(false);
+        return;
+      }
+    }
+
     const payload = {
       ...portfolioForm,
-      imageUrl: isVideo ? null : mediaUrl,
+      imageUrl: isVideo ? (coverUrl || null) : mediaUrl,
       videoUrl: isVideo ? mediaUrl : null,
     };
 
@@ -320,6 +339,7 @@ export default function AdminPortal() {
     
     setPortfolioForm({ title: '', clientName: '', category: '', isVideo: false });
     setPortfolioFile(null);
+    setCoverFile(null);
     setIsUploadingPortfolio(false);
     fetchPortfolio();
   };
@@ -591,6 +611,16 @@ export default function AdminPortal() {
                 onChange={(e) => setPortfolioFile(e.target.files ? e.target.files[0] : null)}
                 accept="image/*,video/*"
                 required
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label>Cover Image / Thumbnail (Optional for Videos — leave blank to use automatic premium placeholder)</label>
+              <input 
+                type="file" 
+                className={styles.input} 
+                onChange={(e) => setCoverFile(e.target.files ? e.target.files[0] : null)}
+                accept="image/*"
               />
             </div>
             <button type="submit" className={styles.submitBtn} disabled={isUploadingPortfolio}>

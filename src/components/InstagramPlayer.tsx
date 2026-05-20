@@ -78,7 +78,19 @@ export default function InstagramPlayer({ portfolio, username, followLink }: Ins
         likes: 2450 + (idx * 342) + (item.title.length * 12),
         caption: item.title,
         hashtags: ['#hospitality', '#escapers', '#' + (item.category || 'content').toLowerCase().replace(/[^a-z0-9]/g, '')],
-        thumbnail: item.imageUrl || (isVideo ? 'https://images.unsplash.com/photo-1507133750040-4a8f57021571?q=80&w=400&auto=format&fit=crop' : media)
+        thumbnail: (() => {
+          if (item.imageUrl) return item.imageUrl;
+          
+          const cat = (item.category || '').toLowerCase();
+          if (cat.includes('resort') || cat.includes('hotel') || cat.includes('stay')) {
+            return 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=400&auto=format&fit=crop';
+          }
+          if (cat.includes('lounge') || cat.includes('bar') || cat.includes('restaurant') || cat.includes('food')) {
+            return 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=400&auto=format&fit=crop';
+          }
+          // Default to premium café placeholder
+          return 'https://images.unsplash.com/photo-1507133750040-4a8f57021571?q=80&w=400&auto=format&fit=crop';
+        })()
       };
     });
 
