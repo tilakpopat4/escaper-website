@@ -11,9 +11,10 @@
   width: 100%;
   padding: 1.5rem 0;
   z-index: 100;
-  background: rgba(10, 10, 12, 0.8);
+  background: var(--navbar-bg);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
+  transition: background 0.5s ease, border-color 0.5s ease;
 }
 
 .navContainer {
@@ -39,12 +40,56 @@
 .navLink {
   font-size: 0.95rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
-  transition: color 0.2s ease;
+  color: var(--text-muted);
+  transition: color 0.2s ease, color 0.5s ease;
 }
 
 .navLink:hover {
   color: var(--accent);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.themeToggle {
+  background: var(--secondary-btn-bg);
+  border: 1px solid var(--border-color);
+  color: var(--foreground);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.5s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  padding: 0;
+  outline: none;
+}
+
+.themeToggle:hover {
+  transform: scale(1.1) rotate(15deg);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.themeToggle:active {
+  transform: scale(0.95);
+}
+
+.themeToggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Hero Section */
@@ -71,9 +116,10 @@
   font-weight: 800;
   letter-spacing: -0.03em;
   margin-bottom: 1.5rem;
-  background: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+  background: linear-gradient(180deg, var(--text-title-gradient-start) 0%, var(--text-title-gradient-end) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  transition: background 0.5s ease;
 }
 
 .highlight {
@@ -81,14 +127,16 @@
   background: linear-gradient(135deg, var(--accent) 0%, #ffdf73 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  transition: background 0.5s ease;
 }
 
 .subtitle {
   font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
   max-width: 600px;
   margin: 0 auto 2.5rem;
   font-weight: 400;
+  transition: color 0.5s ease;
 }
 
 .ctaGroup {
@@ -117,19 +165,19 @@
 .secondaryBtn {
   padding: 1rem 2rem;
   border-radius: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--secondary-btn-bg);
+  color: var(--secondary-btn-text);
   font-weight: 600;
   font-size: 1rem;
   border: 1px solid var(--border-color);
   cursor: pointer;
   backdrop-filter: blur(10px);
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease, transform 0.2s ease;
 }
 
 .secondaryBtn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--secondary-btn-hover-bg);
+  border-color: var(--secondary-btn-hover-border);
 }
 
 /* Animated Background */
@@ -149,8 +197,9 @@
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.5;
+  opacity: var(--orb-opacity);
   animation: float 20s infinite ease-in-out;
+  transition: opacity 0.5s ease;
 }
 
 .gradientOrb1 {
@@ -213,6 +262,7 @@
   box-shadow: 0 0 10px 2px rgba(212, 175, 55, 0.5);
   opacity: 0;
   animation: twinkle infinite ease-in-out;
+  transition: opacity 0.5s ease, background-color 0.5s ease;
 }
 
 @keyframes twinkle {
@@ -232,9 +282,10 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, rgba(10, 10, 12, 0.3) 0%, var(--background) 100%);
+  background: var(--hero-overlay-bg);
   z-index: 1;
   pointer-events: none;
+  transition: background 0.5s ease;
 }
 
 /* Ad Section */
@@ -342,8 +393,9 @@
   width: 420px;
   height: 420px;
   object-fit: contain;
-  filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.3));
+  filter: var(--logo-shadow);
   animation: logoPulse 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  transition: filter 0.5s ease, opacity 0.3s ease;
 }
 
 @keyframes logoEntrance {
@@ -360,11 +412,11 @@
 @keyframes logoPulse {
   0% {
     transform: translateY(0) scale(1) rotate(-1deg);
-    filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.2));
+    filter: var(--logo-shadow);
   }
   100% {
     transform: translateY(-20px) scale(1.06) rotate(1.5deg);
-    filter: drop-shadow(0 0 60px rgba(212, 175, 55, 0.8));
+    filter: var(--logo-shadow-pulse);
   }
 }
 
@@ -384,9 +436,10 @@
   font-weight: 700;
   text-align: center;
   margin-bottom: 4rem;
-  background: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+  background: linear-gradient(180deg, var(--text-title-gradient-start) 0%, var(--text-title-gradient-end) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  transition: background 0.5s ease;
 }
 
 /* Clients Grid */
@@ -397,20 +450,20 @@
 }
 
 .clientCard {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--client-card-bg);
+  border: 1px solid var(--client-card-border);
   border-radius: 16px;
   padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: transform 0.3s ease, background 0.3s ease;
+  transition: transform 0.3s ease, background 0.5s ease, border-color 0.5s ease;
 }
 
 .clientCard:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--client-card-hover-bg);
+  border-color: var(--client-card-hover-border);
 }
 
 .clientLogoWrapper {
@@ -433,8 +486,9 @@
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #fff;
+  color: var(--client-name-color);
   text-align: center;
+  transition: color 0.5s ease;
 }
 
 .clientLinks {
@@ -463,12 +517,12 @@
 }
 
 .serviceCard {
-  background: rgba(10, 10, 12, 0.6);
+  background: var(--service-card-bg);
   border: 1px solid var(--border-color);
   padding: 3rem 2rem;
   border-radius: 24px;
   text-align: center;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background 0.5s ease, border-color 0.5s ease;
 }
 
 .serviceCard:hover {
@@ -482,8 +536,9 @@
 }
 
 .serviceCard p {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
   line-height: 1.6;
+  transition: color 0.5s ease;
 }
 
 /* About Section */
@@ -496,7 +551,8 @@
 .aboutText {
   font-size: 1.25rem;
   line-height: 1.8;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-muted);
+  transition: color 0.5s ease;
 }
 
 .deleteBtn {
@@ -517,12 +573,13 @@
 
 /* Footer */
 .footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  background: #050505;
+  border-top: 1px solid var(--footer-border);
+  background: var(--footer-bg);
   padding: 4rem 2rem 2rem;
   text-align: center;
   position: relative;
   z-index: 10;
+  transition: background 0.5s ease, border-color 0.5s ease;
 }
 
 .footerContent {
@@ -551,11 +608,11 @@
 }
 
 .footerLink {
-  color: #fff;
+  color: var(--foreground);
   text-decoration: none;
   font-weight: 500;
   font-size: 1.1rem;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, color 0.5s ease;
   position: relative;
 }
 
@@ -579,10 +636,11 @@
 }
 
 .footerBottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--footer-border);
   padding-top: 2rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   font-size: 0.9rem;
+  transition: border-color 0.5s ease, color 0.5s ease;
 }
 
 /* Responsive Design */
@@ -606,8 +664,16 @@
     gap: 1rem;
     padding: 0 1.5rem;
   }
+  .navActions {
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    align-items: center;
+  }
   .navLinks {
     gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
   }
   .hero {
     flex-direction: column;
