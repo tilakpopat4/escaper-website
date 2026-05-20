@@ -186,7 +186,7 @@ export default function InstagramPlayer({ portfolio, username, followLink }: Ins
               {/* Instagram App Shell */}
               <div className={styles.instagramApp}>
                 
-                {/* Header */}
+                {/* Header Overlays */}
                 <div className={styles.appHeader}>
                   <div className={styles.headerProfile}>
                     <div className={styles.avatarWrapper}>
@@ -211,7 +211,7 @@ export default function InstagramPlayer({ portfolio, username, followLink }: Ins
                   </button>
                 </div>
 
-                {/* Media Area */}
+                {/* Full Screen Background Media Area */}
                 <div className={styles.mediaContainer} onClick={handlePlayPause} onDoubleClick={handleDoubleTap}>
                   {activePost.type === 'video' ? (
                     <>
@@ -232,18 +232,6 @@ export default function InstagramPlayer({ portfolio, username, followLink }: Ins
                           </svg>
                         </div>
                       )}
-                      {/* Sound Control Button */}
-                      <button className={styles.volumeBtn} onClick={handleMuteUnmute}>
-                        {isMuted ? (
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" />
-                          </svg>
-                        ) : (
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                          </svg>
-                        )}
-                      </button>
                     </>
                   ) : (
                     <img src={activePost.mediaUrl} alt={activePost.caption} className={styles.mediaContent} />
@@ -252,51 +240,78 @@ export default function InstagramPlayer({ portfolio, username, followLink }: Ins
                   {/* Heart Pop Overlay */}
                   {showHeartOverlay && (
                     <div className={styles.heartPop}>
-                      <svg viewBox="0 0 24 24" fill="currentColor">
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="80" height="80">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                       </svg>
                     </div>
                   )}
                 </div>
 
-                {/* Engagement Bar */}
+                {/* Vertical Reels Action Sidebar (Heart, Comment, Share, Bookmark) */}
                 <div className={styles.engagementBar}>
-                  <div className={styles.leftActions}>
+                  <div className={styles.actionItem}>
                     <button className={`${styles.actionBtn} ${hasLiked[activeIndex] ? styles.likedBtn : ''}`} onClick={handleLikeToggle}>
                       {hasLiked[activeIndex] ? (
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
                       ) : (
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                         </svg>
                       )}
                     </button>
+                    <span className={styles.actionLabel}>{(likes[activeIndex] || 0).toLocaleString()}</span>
+                  </div>
+
+                  <div className={styles.actionItem}>
                     <button className={styles.actionBtn}>
-                      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                       </svg>
                     </button>
+                    <span className={styles.actionLabel}>45</span>
+                  </div>
+
+                  <div className={styles.actionItem}>
                     <button className={styles.actionBtn}>
-                      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
                         <line x1="22" y1="2" x2="11" y2="13" />
                         <polygon points="22 2 15 22 11 13 2 9 22 2" />
                       </svg>
                     </button>
+                    <span className={styles.actionLabel}>Share</span>
                   </div>
-                  <button className={styles.actionBtn}>
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                    </svg>
-                  </button>
+
+                  <div className={styles.actionItem}>
+                    <button className={styles.actionBtn}>
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                      </svg>
+                    </button>
+                    <span className={styles.actionLabel}>Save</span>
+                  </div>
                 </div>
 
-                {/* Caption / Comments */}
+                {/* Volume Overlay */}
+                {activePost.type === 'video' && (
+                  <button className={styles.volumeBtn} onClick={handleMuteUnmute}>
+                    {isMuted ? (
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+
+                {/* Bottom Details (Caption / Comments) */}
                 <div className={styles.commentsSection}>
-                  <div className={styles.likesCount}>{(likes[activeIndex] || 0).toLocaleString()} likes</div>
                   <div className={styles.captionText}>
-                    <span className={styles.captionUser}>{username}</span>{' '}
+                    <span className={styles.captionUser}>{username}</span>
                     {activePost.caption}
                   </div>
                   <div className={styles.hashtagsRow}>

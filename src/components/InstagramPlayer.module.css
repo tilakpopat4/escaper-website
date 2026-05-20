@@ -52,7 +52,7 @@
 .phoneMockup {
   position: relative;
   width: 360px;
-  height: 720px;
+  height: 680px;
   margin: 0 auto;
   border-radius: 48px;
   padding: 12px;
@@ -91,8 +91,8 @@
   top: 15px;
   left: 50%;
   transform: translateX(-50%);
-  width: 110px;
-  height: 28px;
+  width: 100px;
+  height: 25px;
   background: #000;
   border-radius: 20px;
   z-index: 100;
@@ -101,30 +101,35 @@
 .phoneScreen {
   width: 100%;
   height: 100%;
-  background: var(--background);
-  color: var(--foreground);
+  background: #000;
+  color: #fff;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: background 0.5s ease, color 0.5s ease;
 }
 
 /* Instagram Layout Inside Smartphone */
 .instagramApp {
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  overflow: hidden;
 }
 
 .appHeader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 3rem 1rem 0.8rem; /* Large top padding to clear dynamic island */
-  border-bottom: 1px solid var(--border-color);
-  background: var(--background);
+  padding: 3rem 1rem 1.5rem; /* clears dynamic island */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%);
   z-index: 50;
-  transition: background 0.5s ease, border-color 0.5s ease;
+  border-bottom: none;
 }
 
 .headerProfile {
@@ -146,7 +151,7 @@
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-  border: 1.5px solid var(--background);
+  border: 1.5px solid #000;
   background: #000;
 }
 
@@ -165,6 +170,8 @@
 .username {
   font-size: 0.85rem;
   font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 
 .verifiedBadge {
@@ -174,43 +181,47 @@
 
 .location {
   font-size: 0.7rem;
-  color: var(--text-muted);
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 
 .moreButton {
   background: none;
   border: none;
-  color: var(--foreground);
+  color: #fff;
   cursor: pointer;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.8));
 }
 
-/* Media Display Area */
+/* Media Display Area - Takes up full screen background */
 .mediaContainer {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 380px;
+  height: 100%;
   background: #000;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   overflow: hidden;
+  z-index: 1;
 }
 
 .mediaContent {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover; /* Crops a little top & bottom to fill perfectly */
 }
 
 .playOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -221,134 +232,134 @@
 
 .volumeBtn {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-  background: rgba(0, 0, 0, 0.6);
-  border: none;
+  bottom: 20px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: 60; /* high z-index to overlay on top of everything */
   backdrop-filter: blur(4px);
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 
 .volumeBtn:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.75);
+  transform: scale(1.05);
 }
 
-/* Double-tap heart popping animation */
-.heartPop {
-  position: absolute;
-  z-index: 20;
-  color: #ff3040;
-  animation: popHeart 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  pointer-events: none;
-}
-
-@keyframes popHeart {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  15% {
-    transform: scale(1.2);
-    opacity: 0.9;
-  }
-  30% {
-    transform: scale(1);
-    opacity: 0.95;
-  }
-  80% {
-    transform: scale(1.1) translateY(-10px);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(0.8) translateY(-40px);
-    opacity: 0;
-  }
-}
-
-/* Engagement & Actions */
+/* Vertical Reels Action Sidebar on the Right */
 .engagementBar {
+  position: absolute;
+  bottom: 120px;
+  right: 15px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 1.25rem;
   align-items: center;
-  padding: 0.75rem 0.85rem;
+  z-index: 50;
 }
 
-.leftActions {
+.actionItem {
   display: flex;
-  gap: 0.85rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .actionBtn {
-  background: none;
-  border: none;
-  color: var(--foreground);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   cursor: pointer;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.1s ease, color 0.5s ease;
+  backdrop-filter: blur(6px);
+  transition: transform 0.2s, color 0.2s, background 0.2s;
+}
+
+.actionBtn:hover {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(1.1);
 }
 
 .actionBtn:active {
-  transform: scale(0.8);
+  transform: scale(0.9);
+}
+
+.actionLabel {
+  font-size: 0.65rem;
+  color: #fff;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 
 .likedBtn {
-  color: #ff3040;
+  color: #ff3040 !important;
+  background: rgba(255, 48, 64, 0.1) !important;
+  border-color: rgba(255, 48, 64, 0.3) !important;
 }
 
-/* Caption & Comments */
+/* Bottom Overlay Details (Caption/Hashtags) */
 .commentsSection {
-  padding: 0 0.85rem 1.5rem;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.likesCount {
-  font-size: 0.8rem;
-  font-weight: 700;
-  margin-bottom: 0.4rem;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 3rem 5.5rem 1.5rem 1rem; /* leaves space for bottom sound button and sidebar */
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 40;
+  pointer-events: none;
 }
 
 .captionText {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   line-height: 1.4;
-  margin-bottom: 0.4rem;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  pointer-events: auto;
 }
 
 .captionUser {
   font-weight: 700;
+  margin-right: 0.5rem;
 }
 
 .hashtagsRow {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
-  margin-bottom: 0.5rem;
+  pointer-events: auto;
 }
 
 .hashtag {
   font-size: 0.75rem;
-  color: #0095f6;
-  font-weight: 500;
+  color: #3897f0;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
   cursor: pointer;
 }
 
 .postTime {
-  font-size: 0.65rem;
-  color: var(--text-muted);
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.6);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 }
 
 /* Sidebar / Thumbnails */
@@ -495,10 +506,6 @@
   .phoneMockup {
     width: 320px;
     height: 640px;
-  }
-  
-  .mediaContainer {
-    height: 300px;
   }
 }
 
