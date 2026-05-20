@@ -14,9 +14,9 @@ interface InstagramPost {
   thumbnail: string;
 }
 
-const INSTAGRAM_POSTS: InstagramPost[] = [
+const FALLBACK_POSTS: InstagramPost[] = [
   {
-    id: 'post-1',
+    id: 'fallback-1',
     type: 'video',
     mediaUrl: '/uploads/1778860596674-708858151-TPF_Reel_1.mp4',
     location: 'Amanbagh, Rajasthan',
@@ -26,7 +26,7 @@ const INSTAGRAM_POSTS: InstagramPost[] = [
     thumbnail: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=400&auto=format&fit=crop'
   },
   {
-    id: 'post-2',
+    id: 'fallback-2',
     type: 'video',
     mediaUrl: 'https://assets.mixkit.co/videos/preview/mixkit-coffee-pouring-into-a-cup-29929-large.mp4',
     location: 'Escaper Café Lab',
@@ -36,7 +36,7 @@ const INSTAGRAM_POSTS: InstagramPost[] = [
     thumbnail: 'https://images.unsplash.com/photo-1507133750040-4a8f57021571?q=80&w=400&auto=format&fit=crop'
   },
   {
-    id: 'post-3',
+    id: 'fallback-3',
     type: 'image',
     mediaUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800&auto=format&fit=crop',
     location: 'The Escaper Lounge',
@@ -47,26 +47,58 @@ const INSTAGRAM_POSTS: InstagramPost[] = [
   }
 ];
 
-export default function InstagramPlayer() {
+interface InstagramPlayerProps {
+  portfolio: any[];
+  username: string;
+  followLink: string;
+}
+
+export default function InstagramPlayer({ portfolio, username, followLink }: InstagramPlayerProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  const [likes, setLikes] = useState(INSTAGRAM_POSTS.map(p => p.likes));
-  const [hasLiked, setHasLiked] = useState(INSTAGRAM_POSTS.map(() => false));
+  const [posts, setPosts] = useState<InstagramPost[]>(FALLBACK_POSTS);
+  const [likes, setLikes] = useState<number[]>(FALLBACK_POSTS.map(p => p.likes));
+  const [hasLiked, setHasLiked] = useState<boolean[]>(FALLBACK_POSTS.map(() => false));
   const [showHeartOverlay, setShowHeartOverlay] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const activePost = INSTAGRAM_POSTS[activeIndex];
 
-  // Set isClient to true when mounted
+  // Map portfolio records from database and merge with fallbacks
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    const dbPosts: InstagramPost[] = (portfolio || []).map((item, idx) => {
+      const isVideo = !!item.videoUrl;
+      const media = item.videoUrl || item.imageUrl || '';
+      return {
+        id: item.id,
+        type: isVideo ? 'video' : 'image',
+        mediaUrl: media,
+        location: `${item.clientName} • ${item.category}`,
+        likes: 2450 + (idx * 342) + (item.title.length * 12),
+        caption: item.title,
+        hashtags: ['#hospitality', '#escapers', '#' + (item.category || 'content').toLowerCase().replace(/[^a-z0-9]/g, '')],
+        thumbnail: item.imageUrl || (isVideo ? 'https://images.unsplash.com/photo-1507133750040-4a8f57021571?q=80&w=400&auto=format&fit=crop' : media)
+      };
+    });
+
+    const merged = [...dbPosts, ...FALLBACK_POSTS];
+    // Deduplicate or slice to top 6 items
+    const finalPosts = merged.filter((post, index, self) => 
+      self.findIndex(p => p.id === post.id) === index
+    ).slice(0, 6);
+
+    setPosts(finalPosts);
+    setLikes(finalPosts.map(p => p.likes));
+    setHasLiked(finalPosts.map(() => false));
+    setMounted(true);
+  }, [portfolio]);
+
+  const activePost = posts[activeIndex] || FALLBACK_POSTS[0];
 
   // Update video playback state when active post changes
   useEffect(() => {
-    if (activePost.type === 'video' && videoRef.current) {
+    if (activePost && activePost.type === 'video' && videoRef.current) {
       videoRef.current.load();
       if (isPlaying) {
         videoRef.current.play().catch(err => {
@@ -75,10 +107,10 @@ export default function InstagramPlayer() {
         });
       }
     }
-  }, [activeIndex]);
+  }, [activeIndex, activePost]);
 
   const handlePlayPause = () => {
-    if (activePost.type !== 'video' || !videoRef.current) return;
+    if (!activePost || activePost.type !== 'video' || !videoRef.current) return;
     if (isPlaying) {
       videoRef.current.pause();
     } else {
@@ -88,7 +120,7 @@ export default function InstagramPlayer() {
   };
 
   const handleMuteUnmute = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Don't trigger play/pause
+    e.stopPropagation();
     if (!videoRef.current) return;
     videoRef.current.muted = !isMuted;
     setIsMuted(!isMuted);
@@ -122,6 +154,8 @@ export default function InstagramPlayer() {
     setHasLiked(newHasLiked);
   };
 
+  if (!mounted || !activePost) return null;
+
   return (
     <div className={styles.instagramSection}>
       <div className={styles.sectionHeader}>
@@ -150,7 +184,7 @@ export default function InstagramPlayer() {
                     </div>
                     <div className={styles.headerInfo}>
                       <div className={styles.usernameRow}>
-                        <span className={styles.username}>escaper.creatives</span>
+                        <span className={styles.username}>{username}</span>
                         <svg className={styles.verifiedBadge} viewBox="0 0 24 24" fill="none">
                           <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#0095f6"/>
                         </svg>
@@ -250,13 +284,13 @@ export default function InstagramPlayer() {
 
                 {/* Caption / Comments */}
                 <div className={styles.commentsSection}>
-                  <div className={styles.likesCount}>{likes[activeIndex].toLocaleString()} likes</div>
+                  <div className={styles.likesCount}>{(likes[activeIndex] || 0).toLocaleString()} likes</div>
                   <div className={styles.captionText}>
-                    <span className={styles.captionUser}>escaper.creatives</span>{' '}
+                    <span className={styles.captionUser}>{username}</span>{' '}
                     {activePost.caption}
                   </div>
                   <div className={styles.hashtagsRow}>
-                    {activePost.hashtags.map((h, i) => (
+                    {(activePost.hashtags || []).map((h, i) => (
                       <span key={i} className={styles.hashtag}>{h}</span>
                     ))}
                   </div>
@@ -273,7 +307,7 @@ export default function InstagramPlayer() {
         <div className={styles.feedSidebar}>
           <h3 className={styles.sidebarTitle}>Select Content Reel</h3>
           <div className={styles.thumbnailsGrid}>
-            {INSTAGRAM_POSTS.map((post, idx) => (
+            {posts.map((post, idx) => (
               <div
                 key={post.id}
                 className={`${styles.thumbnailCard} ${activeIndex === idx ? styles.activeThumbnail : ''}`}
@@ -303,12 +337,12 @@ export default function InstagramPlayer() {
           <div className={styles.followCTA}>
             <p>Loved our presentation? Follow us for daily aesthetic inspiration.</p>
             <a 
-              href="https://instagram.com/escaper.creatives" 
+              href={followLink} 
               target="_blank" 
               rel="noreferrer" 
               className={styles.followBtn}
             >
-              Follow @escaper.creatives
+              Follow @{username}
             </a>
           </div>
         </div>

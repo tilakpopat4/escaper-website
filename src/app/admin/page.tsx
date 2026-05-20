@@ -52,7 +52,9 @@ export default function AdminPortal() {
     footer_tagline: "The Premier Social Media Agency for Hospitality",
     footer_email: "escapercreatives@gmail.com",
     footer_ig_label: "Instagram (@escaper.creatives)",
-    footer_ig_link: "https://instagram.com/escaper.creatives"
+    footer_ig_link: "https://instagram.com/escaper.creatives",
+    instagram_username: "escaper.creatives",
+    instagram_follow_link: "https://instagram.com/escaper.creatives"
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
@@ -650,6 +652,13 @@ export default function AdminPortal() {
             >
               Footer & Contact
             </button>
+            <button 
+              className={`${styles.backBtn} ${activeTab === 'instagram' ? styles.activeTabBtn : ''}`}
+              onClick={() => setActiveTab('instagram')}
+              style={activeTab === 'instagram' ? { background: 'var(--accent)', color: '#000' } : {}}
+            >
+              Instagram Feed
+            </button>
           </div>
 
           <form onSubmit={handleSettingsSubmit}>
@@ -884,6 +893,31 @@ export default function AdminPortal() {
                       required
                     />
                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'instagram' && (
+              <div>
+                <div className={styles.formGroup}>
+                  <label>Instagram Username / Handle (without @)</label>
+                  <input 
+                    type="text" 
+                    className={styles.input} 
+                    value={settings.instagram_username || ''}
+                    onChange={(e) => setSettings({ ...settings, instagram_username: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Instagram Profile URL (Link when follow button is tapped)</label>
+                  <input 
+                    type="text" 
+                    className={styles.input} 
+                    value={settings.instagram_follow_link || ''}
+                    onChange={(e) => setSettings({ ...settings, instagram_follow_link: e.target.value })}
+                    required
+                  />
                 </div>
               </div>
             )}

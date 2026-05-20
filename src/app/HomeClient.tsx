@@ -9,10 +9,11 @@ import InstagramPlayer from '@/components/InstagramPlayer';
 interface HomeClientProps {
   initialAds: any[];
   initialClients: any[];
+  initialPortfolio: any[];
   initialSettings: Record<string, string>;
 }
 
-export default function HomeClient({ initialAds, initialClients, initialSettings }: HomeClientProps) {
+export default function HomeClient({ initialAds, initialClients, initialPortfolio, initialSettings }: HomeClientProps) {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [mounted, setMounted] = useState(false);
 
@@ -150,7 +151,11 @@ export default function HomeClient({ initialAds, initialClients, initialSettings
       </section>
 
       {/* Miniature Instagram Feed Player */}
-      <InstagramPlayer />
+      <InstagramPlayer 
+        portfolio={initialPortfolio}
+        username={initialSettings.instagram_username || 'escaper.creatives'}
+        followLink={initialSettings.instagram_follow_link || 'https://instagram.com/escaper.creatives'}
+      />
 
       {/* Current Clients Section */}
       <section id="clients" className={styles.section}>

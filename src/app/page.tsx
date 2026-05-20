@@ -21,7 +21,9 @@ const DEFAULT_SETTINGS = {
   footer_tagline: "The Premier Social Media Agency for Hospitality",
   footer_email: "escapercreatives@gmail.com",
   footer_ig_label: "Instagram (@escaper.creatives)",
-  footer_ig_link: "https://instagram.com/escaper.creatives"
+  footer_ig_link: "https://instagram.com/escaper.creatives",
+  instagram_username: "escaper.creatives",
+  instagram_follow_link: "https://instagram.com/escaper.creatives"
 };
 
 export const dynamic = 'force-dynamic';
@@ -29,6 +31,7 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   let latestAds: any[] = [];
   let clients: any[] = [];
+  let portfolio: any[] = [];
   let settings: Record<string, string> = { ...DEFAULT_SETTINGS };
 
   try {
@@ -46,6 +49,14 @@ export default async function Home() {
     });
   } catch (error) {
     console.error("Failed to fetch clients from database:", error);
+  }
+
+  try {
+    portfolio = await prisma.portfolio.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (error) {
+    console.error("Failed to fetch portfolio from database:", error);
   }
 
   try {
@@ -69,6 +80,7 @@ export default async function Home() {
     <HomeClient 
       initialAds={adsToRender}
       initialClients={clients}
+      initialPortfolio={portfolio}
       initialSettings={settings}
     />
   );
