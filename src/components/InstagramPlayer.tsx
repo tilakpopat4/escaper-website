@@ -82,15 +82,13 @@ export default function InstagramPlayer({ portfolio, username, followLink }: Ins
       };
     });
 
-    const merged = [...dbPosts, ...FALLBACK_POSTS];
-    // Deduplicate or slice to top 6 items
-    const finalPosts = merged.filter((post, index, self) => 
-      self.findIndex(p => p.id === post.id) === index
-    ).slice(0, 6);
+    // If the database has portfolio items, show ONLY those dynamic items.
+    // Otherwise, show our premium defaults so the landing page is never empty.
+    const finalPosts = dbPosts.length > 0 ? dbPosts : FALLBACK_POSTS;
 
-    setPosts(finalPosts);
-    setLikes(finalPosts.map(p => p.likes));
-    setHasLiked(finalPosts.map(() => false));
+    setPosts(finalPosts.slice(0, 6));
+    setLikes(finalPosts.slice(0, 6).map(p => p.likes));
+    setHasLiked(finalPosts.slice(0, 6).map(() => false));
     setMounted(true);
   }, [portfolio]);
 
