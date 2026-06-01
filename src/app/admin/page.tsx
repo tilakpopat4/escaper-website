@@ -59,6 +59,22 @@ export default function AdminPortal() {
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
+  // Edit states
+  const [editingAd, setEditingAd] = useState<any | null>(null);
+  const [editingClient, setEditingClient] = useState<any | null>(null);
+  const [editingPortfolio, setEditingPortfolio] = useState<any | null>(null);
+
+  // File states for editing
+  const [editAdFile, setEditAdFile] = useState<File | null>(null);
+  const [editClientFile, setEditClientFile] = useState<File | null>(null);
+  const [editPortfolioFile, setEditPortfolioFile] = useState<File | null>(null);
+  const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
+
+  const [isSavingAdEdit, setIsSavingAdEdit] = useState(false);
+  const [isSavingClientEdit, setIsSavingClientEdit] = useState(false);
+  const [isSavingPortfolioEdit, setIsSavingPortfolioEdit] = useState(false);
+
+
   useEffect(() => {
     const savedPassword = sessionStorage.getItem('admin_password');
     if (savedPassword) {
@@ -161,6 +177,254 @@ export default function AdminPortal() {
   const fetchPortfolio = async () => {
     const res = await fetch('/api/portfolio', { cache: 'no-store' });
     if (res.ok) setPortfolio(await res.json());
+  };
+
+  const handleMoveAd = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= ads.length) return;
+
+    const newAds = [...ads];
+    const temp = newAds[index];
+    newAds[index] = newAds[targetIndex];
+    newAds[targetIndex] = temp;
+
+    const updatedAds = newAds.map((item, idx) => ({ ...item, order: idx }));
+    setAds(updatedAds);
+
+    try {
+      await Promise.all([
+        fetch('/api/ads', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' },
+          body: JSON.stringify({ id: updatedAds[index].id, order: index })
+        }),
+        fetch('/api/ads', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' },
+          body: JSON.stringify({ id: updatedAds[targetIndex].id, order: targetIndex })
+        })
+      ]);
+      fetchAds();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleMoveClient = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= clients.length) return;
+
+    const newClients = [...clients];
+    const temp = newClients[index];
+    newClients[index] = newClients[targetIndex];
+    newClients[targetIndex] = temp;
+
+    const updatedClients = newClients.map((item, idx) => ({ ...item, order: idx }));
+    setClients(updatedClients);
+
+    try {
+      await Promise.all([
+        fetch('/api/clients', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' },
+          body: JSON.stringify({ id: updatedClients[index].id, order: index })
+        }),
+        fetch('/api/clients', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' },
+          body: JSON.stringify({ id: updatedClients[targetIndex].id, order: targetIndex })
+        })
+      ]);
+      fetchClients();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleMovePortfolio = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= portfolio.length) return;
+
+    const newPortfolio = [...portfolio];
+    const temp = newPortfolio[index];
+    newPortfolio[index] = newPortfolio[targetIndex];
+    newPortfolio[targetIndex] = temp;
+
+    const updatedPortfolio = newPortfolio.map((item, idx) => ({ ...item, order: idx }));
+    setPortfolio(updatedPortfolio);
+
+    try {
+      await Promise.all([
+        fetch('/api/portfolio', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' },
+          body: JSON.stringify({ id: updatedPortfolio[index].id, order: index })
+        }),
+        fetch('/api/portfolio', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' },
+          body: JSON.stringify({ id: updatedPortfolio[targetIndex].id, order: targetIndex })
+        })
+      ]);
+      fetchPortfolio();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAdEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAd) return;
+    setIsSavingAdEdit(true);
+
+    let finalImageUrl = editingAd.imageUrl;
+
+    if (editAdFile) {
+      try {
+        let fileName = editAdFile.name;
+        if (editAdFile.type.startsWith('video/') && !fileName.match(/\.(mp4|webm|ogg|mov)$/i)) {
+          fileName += '.mp4';
+        }
+        const renamedFile = new File([editAdFile], fileName, { type: editAdFile.type });
+        const res = await startUpload([renamedFile]);
+        if (res && res[0]) {
+          finalImageUrl = res[0].url;
+          if (editAdFile.type.startsWith('video/')) {
+            finalImageUrl += '?video=true';
+          }
+        }
+      } catch (err: any) {
+        alert("Upload failed: " + err.message);
+        setIsSavingAdEdit(false);
+        return;
+      }
+    }
+
+    try {
+      const res = await fetch('/api/ads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' },
+        body: JSON.stringify({ ...editingAd, imageUrl: finalImageUrl })
+      });
+      if (res.ok) {
+        setEditingAd(null);
+        setEditAdFile(null);
+        fetchAds();
+      } else {
+        alert("Failed to save changes");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingAdEdit(false);
+    }
+  };
+
+  const handleClientEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingClient) return;
+    setIsSavingClientEdit(true);
+
+    let finalLogoUrl = editingClient.logoUrl;
+
+    if (editClientFile) {
+      try {
+        const res = await startUpload([editClientFile]);
+        if (res && res[0]) {
+          finalLogoUrl = res[0].url;
+        }
+      } catch (err: any) {
+        alert("Upload failed: " + err.message);
+        setIsSavingClientEdit(false);
+        return;
+      }
+    }
+
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' },
+        body: JSON.stringify({ ...editingClient, logoUrl: finalLogoUrl })
+      });
+      if (res.ok) {
+        setEditingClient(null);
+        setEditClientFile(null);
+        fetchClients();
+      } else {
+        alert("Failed to save changes");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingClientEdit(false);
+    }
+  };
+
+  const handlePortfolioEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPortfolio) return;
+    setIsSavingPortfolioEdit(true);
+
+    let mediaUrl = editingPortfolio.videoUrl || editingPortfolio.imageUrl;
+    let coverUrl = editingPortfolio.imageUrl;
+    let isVideo = !!editingPortfolio.videoUrl;
+
+    if (editPortfolioFile) {
+      if (editPortfolioFile.type.startsWith('video/')) {
+        isVideo = true;
+      } else {
+        isVideo = false;
+      }
+      try {
+        const res = await startUpload([editPortfolioFile]);
+        if (res && res[0]) {
+          mediaUrl = res[0].url;
+        }
+      } catch (err: any) {
+        alert("Upload failed: " + err.message);
+        setIsSavingPortfolioEdit(false);
+        return;
+      }
+    }
+
+    if (editCoverFile) {
+      try {
+        const res = await startUpload([editCoverFile]);
+        if (res && res[0]) {
+          coverUrl = res[0].url;
+        }
+      } catch (err: any) {
+        alert("Upload failed: " + err.message);
+        setIsSavingPortfolioEdit(false);
+        return;
+      }
+    }
+
+    const payload = {
+      ...editingPortfolio,
+      imageUrl: isVideo ? (editCoverFile ? coverUrl : editingPortfolio.imageUrl) : mediaUrl,
+      videoUrl: isVideo ? mediaUrl : null,
+    };
+
+    try {
+      const res = await fetch('/api/portfolio', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword || '' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        setEditingPortfolio(null);
+        setEditPortfolioFile(null);
+        setEditCoverFile(null);
+        fetchPortfolio();
+      } else {
+        alert("Failed to save changes");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingPortfolioEdit(false);
+    }
   };
 
   const handleAdSubmit = async (e: React.FormEvent) => {
@@ -482,9 +746,27 @@ export default function AdminPortal() {
 
             <div className={styles.list}>
               <h3>Active Ads</h3>
-              {ads.map((ad) => (
+              {ads.map((ad, idx) => (
                 <div key={ad.id} className={styles.listItem}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                    <div className={styles.orderControls}>
+                      <button 
+                        type="button" 
+                        className={styles.orderBtn} 
+                        onClick={() => handleMoveAd(idx, 'up')}
+                        disabled={idx === 0}
+                      >
+                        ▲
+                      </button>
+                      <button 
+                        type="button" 
+                        className={styles.orderBtn} 
+                        onClick={() => handleMoveAd(idx, 'down')}
+                        disabled={idx === ads.length - 1}
+                      >
+                        ▼
+                      </button>
+                    </div>
                     {ad.imageUrl && (
                       ad.imageUrl.match(/\.(mp4|webm|ogg|mov)(\?|$|-|%)/i) || ad.imageUrl.includes('video=true') ? (
                         <span style={{ fontSize: '1.5rem' }}>🎥</span>
@@ -496,7 +778,10 @@ export default function AdminPortal() {
                       <div className={styles.itemTitle}>{ad.title}</div>
                     </div>
                   </div>
-                  <button className={styles.deleteBtn} onClick={() => handleDeleteAd(ad.id)}>Delete</button>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className={styles.editBtn} onClick={() => setEditingAd(ad)}>Edit</button>
+                    <button className={styles.deleteBtn} onClick={() => handleDeleteAd(ad.id)}>Delete</button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -551,15 +836,36 @@ export default function AdminPortal() {
 
             <div className={styles.list}>
               <h3>Current Clients</h3>
-              {clients.map((client) => (
+              {clients.map((client, idx) => (
                 <div key={client.id} className={styles.listItem}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                    <div className={styles.orderControls}>
+                      <button 
+                        type="button" 
+                        className={styles.orderBtn} 
+                        onClick={() => handleMoveClient(idx, 'up')}
+                        disabled={idx === 0}
+                      >
+                        ▲
+                      </button>
+                      <button 
+                        type="button" 
+                        className={styles.orderBtn} 
+                        onClick={() => handleMoveClient(idx, 'down')}
+                        disabled={idx === clients.length - 1}
+                      >
+                        ▼
+                      </button>
+                    </div>
                     <img src={client.logoUrl} alt={client.name} className={styles.itemMedia} />
                     <div>
                       <div className={styles.itemTitle}>{client.name}</div>
                     </div>
                   </div>
-                  <button className={styles.deleteBtn} onClick={() => handleDeleteClient(client.id)}>Delete</button>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className={styles.editBtn} onClick={() => setEditingClient(client)}>Edit</button>
+                    <button className={styles.deleteBtn} onClick={() => handleDeleteClient(client.id)}>Delete</button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -630,9 +936,27 @@ export default function AdminPortal() {
 
           <div className={styles.list}>
             <h3>Work Items</h3>
-            {portfolio.map((item) => (
+            {portfolio.map((item, idx) => (
               <div key={item.id} className={styles.listItem}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                  <div className={styles.orderControls}>
+                    <button 
+                      type="button" 
+                      className={styles.orderBtn} 
+                      onClick={() => handleMovePortfolio(idx, 'up')}
+                      disabled={idx === 0}
+                    >
+                      ▲
+                    </button>
+                    <button 
+                      type="button" 
+                      className={styles.orderBtn} 
+                      onClick={() => handleMovePortfolio(idx, 'down')}
+                      disabled={idx === portfolio.length - 1}
+                    >
+                      ▼
+                    </button>
+                  </div>
                   {item.videoUrl ? (
                     <span style={{ fontSize: '1.5rem' }}>🎥</span>
                   ) : (
@@ -643,7 +967,10 @@ export default function AdminPortal() {
                     <div className={styles.itemSub}>{item.clientName} | {item.category}</div>
                   </div>
                 </div>
-                <button className={styles.deleteBtn} onClick={() => handleDeletePortfolio(item.id)}>Delete</button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button className={styles.editBtn} onClick={() => setEditingPortfolio(item)}>Edit</button>
+                  <button className={styles.deleteBtn} onClick={() => handleDeletePortfolio(item.id)}>Delete</button>
+                </div>
               </div>
             ))}
           </div>
@@ -958,6 +1285,184 @@ export default function AdminPortal() {
           </form>
         </div>
       </div>
+
+      {/* ================= EDIT AD MODAL ================= */}
+      {editingAd && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2 className={styles.modalTitle}>Edit Featured Ad</h2>
+            <form onSubmit={handleAdEditSubmit}>
+              <div className={styles.formGroup}>
+                <label>Ad Campaign Title</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={editingAd.title}
+                  onChange={(e) => setEditingAd({ ...editingAd, title: e.target.value })}
+                  required 
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Replace Ad Media (Choose File to Upload)</label>
+                <input 
+                  type="file" 
+                  className={styles.input} 
+                  onChange={(e) => {
+                    setEditAdFile(e.target.files ? e.target.files[0] : null);
+                    if (e.target.files && e.target.files[0]) {
+                      setEditingAd({ ...editingAd, imageUrl: '' });
+                    }
+                  }}
+                  accept="image/*,video/*"
+                />
+                <div style={{ textAlign: 'center', margin: '0.5rem 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>— OR —</div>
+                <label>Paste Manual URL</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={editingAd.imageUrl}
+                  onChange={(e) => {
+                    setEditingAd({ ...editingAd, imageUrl: e.target.value });
+                    setEditAdFile(null);
+                  }}
+                  placeholder="Paste manual image/video URL"
+                />
+              </div>
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.cancelBtn} onClick={() => { setEditingAd(null); setEditAdFile(null); }}>
+                  Cancel
+                </button>
+                <button type="submit" className={styles.submitBtn} style={{ flex: 1 }} disabled={isSavingAdEdit}>
+                  {isSavingAdEdit ? 'Saving Changes...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= EDIT CLIENT MODAL ================= */}
+      {editingClient && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2 className={styles.modalTitle}>Edit Client</h2>
+            <form onSubmit={handleClientEditSubmit}>
+              <div className={styles.formGroup}>
+                <label>Client Name</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={editingClient.name}
+                  onChange={(e) => setEditingClient({ ...editingClient, name: e.target.value })}
+                  required 
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Instagram URL</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={editingClient.instagramUrl || ''}
+                  onChange={(e) => setEditingClient({ ...editingClient, instagramUrl: e.target.value })}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Website URL</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={editingClient.websiteUrl || ''}
+                  onChange={(e) => setEditingClient({ ...editingClient, websiteUrl: e.target.value })}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Replace Client Logo Logo File (Optional)</label>
+                <input 
+                  type="file" 
+                  className={styles.input} 
+                  onChange={(e) => setEditClientFile(e.target.files ? e.target.files[0] : null)}
+                  accept="image/*"
+                />
+              </div>
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.cancelBtn} onClick={() => { setEditingClient(null); setEditClientFile(null); }}>
+                  Cancel
+                </button>
+                <button type="submit" className={styles.submitBtn} style={{ flex: 1 }} disabled={isSavingClientEdit}>
+                  {isSavingClientEdit ? 'Saving Changes...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= EDIT PORTFOLIO MODAL ================= */}
+      {editingPortfolio && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2 className={styles.modalTitle}>Edit Portfolio Item</h2>
+            <form onSubmit={handlePortfolioEditSubmit}>
+              <div className={styles.formGroup}>
+                <label>Project Title</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={editingPortfolio.title}
+                  onChange={(e) => setEditingPortfolio({ ...editingPortfolio, title: e.target.value })}
+                  required 
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Client Name</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={editingPortfolio.clientName}
+                  onChange={(e) => setEditingPortfolio({ ...editingPortfolio, clientName: e.target.value })}
+                  required 
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Category</label>
+                <input 
+                  type="text" 
+                  className={styles.input} 
+                  value={editingPortfolio.category}
+                  onChange={(e) => setEditingPortfolio({ ...editingPortfolio, category: e.target.value })}
+                  required 
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Replace Media File (Optional)</label>
+                <input 
+                  type="file" 
+                  className={styles.input} 
+                  onChange={(e) => setEditPortfolioFile(e.target.files ? e.target.files[0] : null)}
+                  accept="image/*,video/*"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Replace Cover Image/Thumbnail (Optional for Videos)</label>
+                <input 
+                  type="file" 
+                  className={styles.input} 
+                  onChange={(e) => setEditCoverFile(e.target.files ? e.target.files[0] : null)}
+                  accept="image/*"
+                />
+              </div>
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.cancelBtn} onClick={() => { setEditingPortfolio(null); setEditPortfolioFile(null); setEditCoverFile(null); }}>
+                  Cancel
+                </button>
+                <button type="submit" className={styles.submitBtn} style={{ flex: 1 }} disabled={isSavingPortfolioEdit}>
+                  {isSavingPortfolioEdit ? 'Saving Changes...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

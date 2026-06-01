@@ -60,3 +60,34 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Failed to delete portfolio item' }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    if (!verifyAdmin(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const data = await request.json();
+    const { id, title, clientName, category, imageUrl, videoUrl, isFeatured, order } = data;
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const updatedPortfolio = await prisma.portfolio.update({
+      where: { id },
+      data: {
+        title,
+        clientName,
+        category,
+        imageUrl,
+        videoUrl,
+        isFeatured,
+        order: order !== undefined ? Number(order) : undefined,
+      }
+    });
+    revalidatePath('/work');
+    revalidatePath('/');
+    return NextResponse.json(updatedPortfolio);
+  } catch (error) {
+    console.error("PORTFOLIO UPDATE ERROR:", error);
+    return NextResponse.json({ error: 'Failed to update portfolio item' }, { status: 500 });
+  }
+}

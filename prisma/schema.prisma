@@ -13,6 +13,7 @@ model Client {
   logoUrl      String
   websiteUrl   String?
   instagramUrl String?
+  order        Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -25,6 +26,7 @@ model Portfolio {
   imageUrl    String?
   videoUrl    String?
   isFeatured  Boolean  @default(false)
+  order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -46,6 +48,7 @@ model Ad {
   imageUrl    String
   linkUrl     String?
   isActive    Boolean  @default(true)
+  order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

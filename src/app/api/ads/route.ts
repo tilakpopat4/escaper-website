@@ -58,3 +58,32 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Failed to delete ad' }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    if (!verifyAdmin(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const data = await request.json();
+    const { id, title, description, imageUrl, linkUrl, isActive, order } = data;
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const updatedAd = await prisma.ad.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        imageUrl,
+        linkUrl,
+        isActive,
+        order: order !== undefined ? Number(order) : undefined,
+      }
+    });
+    revalidatePath('/');
+    return NextResponse.json(updatedAd);
+  } catch (error) {
+    console.error("AD UPDATE ERROR:", error);
+    return NextResponse.json({ error: 'Failed to update ad' }, { status: 500 });
+  }
+}

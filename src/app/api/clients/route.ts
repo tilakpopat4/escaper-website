@@ -57,3 +57,31 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    if (!verifyAdmin(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const data = await request.json();
+    const { id, name, logoUrl, websiteUrl, instagramUrl, order } = data;
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    const updatedClient = await prisma.client.update({
+      where: { id },
+      data: {
+        name,
+        logoUrl,
+        websiteUrl,
+        instagramUrl,
+        order: order !== undefined ? Number(order) : undefined,
+      }
+    });
+    revalidatePath('/');
+    return NextResponse.json(updatedClient);
+  } catch (error) {
+    console.error("CLIENT UPDATE ERROR:", error);
+    return NextResponse.json({ error: 'Failed to update client' }, { status: 500 });
+  }
+}

@@ -37,7 +37,10 @@ export default async function Home() {
   try {
     latestAds = await prisma.ad.findMany({
       where: { isActive: true },
-      orderBy: { createdAt: 'desc' }
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
     });
   } catch (error) {
     console.error("Failed to fetch ads from database:", error);
@@ -45,7 +48,10 @@ export default async function Home() {
 
   try {
     clients = await prisma.client.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
     });
   } catch (error) {
     console.error("Failed to fetch clients from database:", error);
@@ -53,7 +59,10 @@ export default async function Home() {
 
   try {
     portfolio = await prisma.portfolio.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
     });
   } catch (error) {
     console.error("Failed to fetch portfolio from database:", error);

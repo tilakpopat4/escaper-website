@@ -8,7 +8,10 @@ export default async function WorkPage() {
   let portfolioItems: any[] = [];
   try {
     portfolioItems = await prisma.portfolio.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
     });
   } catch (error) {
     console.error("Failed to fetch portfolio items from database:", error);
